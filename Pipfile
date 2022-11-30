@@ -12,4 +12,4 @@ authlib = "*"
 python_version = "3.10"
 
 [scripts]
-test_client = "python src/hyacinth/__init__.py"
+tests = "python -m unittest discover -s 'tests"
