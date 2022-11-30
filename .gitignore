@@ -65,4 +65,4 @@ target/
 #Ipython Notebook
 .ipynb_checkpoints
 
-generated_client/
+.envrc
