@@ -24,13 +24,11 @@ class Session:
             paging = res.json()["meta"].get("paging")
             print(paging)
             if paging:
-                print("paging found")
-                if paging.get("next"):
+               if paging.get("next"):
                     next_url = paging["next"]
                 else:
                     next_url = None
             else:
-                print("no paging found")
                 # break the loop
                 next_url = None
 
