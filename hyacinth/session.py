@@ -22,12 +22,15 @@ class Session:
                 yield contact
 
             paging = res.json()["meta"].get("paging")
+            print(paging)
             if paging:
+                print("paging found")
                 if paging.get("next"):
                     next_url = paging["next"]
                 else:
                     next_url = None
             else:
+                print("no paging found")
                 # break the loop
                 next_url = None
 
@@ -37,7 +40,7 @@ class Session:
 
     def get_contacts(self, **kwargs):
         url = f"{CLIO_API_BASE_URL_US}/contacts.json"
-        return self.get_paginated_resource(url, kwargs)    
+        return self.get_paginated_resource(url, kwargs)
 
     def get_who_am_i(self):
         url = f"{CLIO_API_BASE_URL_US}/users/who_am_i.json"

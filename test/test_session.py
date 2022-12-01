@@ -16,17 +16,29 @@ test_client_id = "test_client_id"
 test_client_secret = "test_client_secret"
 
 class TestSession(unittest.TestCase):
-    def test_get_resource(self):
-        test_url = "https://test-url.com"
-        test_params = {}
-        
-        s = hyacinth.Session(token=test_token,
-                             client_id=test_client_id,
-                             client_secret=test_client_secret)
+    def setUp(self):
+        self.session = hyacinth.Session(token=test_token,
+                                        client_id=test_client_id,
+                                        client_secret=test_client_secret)
+        self.test_url = "https://test-url.com"
+        self.test_params = {}
 
-        m = s.session.get = MagicMock()
+    def test_get_resource_requests_correct_url(self):
+        m = MagicMock()
+        self.session.session.get = m
+        self.session.get_resource(self.test_url)
+        m.assert_called_once_with(self.test_url, params=self.test_params)
 
-        s.get_resource(test_url)
+    def test_get_paginated_resource_requests_correct_url(self):
 
-        m.assert_called_once_with(test_url, params=test_params)
-        
+        test_data = [{"id": "1",
+                      "name": "Anson MacKeracher"},
+                     {"id": "2",
+                      "name": "Nick Francis"}]
+        m = MagicMock()
+        m.json.return_value = {"data": test_data,
+                               "meta": {}}
+        self.session.get_resource = MagicMock(return_value=m)
+        res = self.session.get_paginated_resource(self.test_url)
+        self.assertEqual(tuple(test_data), tuple(res))
+        m.json.assert_called()

@@ -8,9 +8,10 @@ authlib = "*"
 requests = "*"
 
 [dev-packages]
+ipdb = "*"
 
 [requires]
 python_version = "3.10"
 
 [scripts]
-tests = "python -m unittest discover -s 'tests"
+tests = "python -m unittest discover -s 'test'"
