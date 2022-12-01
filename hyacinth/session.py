@@ -37,7 +37,7 @@ class Session:
 
     def get_contacts(self, **kwargs):
         url = f"{CLIO_API_BASE_URL_US}/contacts.json"
-        return self.get_paginated_resource(url)
+        return self.get_paginated_resource(url, kwargs)    
 
     def get_who_am_i(self):
         url = f"{CLIO_API_BASE_URL_US}/users/who_am_i.json"
