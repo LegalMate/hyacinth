@@ -26,7 +26,7 @@ class Session:
             if paging:
                if paging.get("next"):
                     next_url = paging["next"]
-                else:
+               else:
                     next_url = None
             else:
                 # break the loop
