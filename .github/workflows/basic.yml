@@ -74,7 +74,7 @@ jobs:
       with:
         path: ~/.local/share/virtualenvs
         key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-pipenv-${{ hashFiles('Pipfile.lock') }}
-    - name: Syntax errors and undefined names scan
+    - name: Syntax scan
       run: |
         pipenv run syntax
     - name: Lint scan
