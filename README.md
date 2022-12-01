@@ -4,7 +4,7 @@ Python HTTP Client library for the Clio Manage API
 ## Features
 
 - [ ] OAuth2 token support
-- [ ] Pagination
+- [ ] Pagination via Cursors
 - [ ] Rate limiting (by token)
 
 ## Development
