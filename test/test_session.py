@@ -30,7 +30,6 @@ class TestSession(unittest.TestCase):
         m.assert_called_once_with(self.test_url, params=self.test_params)
 
     def test_get_paginated_resource_requests_correct_url(self):
-
         test_data = [{"id": "1",
                       "name": "Anson MacKeracher"},
                      {"id": "2",

@@ -22,7 +22,6 @@ class Session:
                 yield contact
 
             paging = res.json()["meta"].get("paging")
-            print(paging)
             if paging:
                if paging.get("next"):
                     next_url = paging["next"]
