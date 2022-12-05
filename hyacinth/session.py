@@ -8,20 +8,24 @@ class Session:
                                      client_secret=client_secret,
                                      token=token)
 
+    @staticmethod
+    def make_url(path):
+        return f"{CLIO_API_BASE_URL_US}/{path}.json"
+
     def get_resource(self, url, **kwargs):
-        return self.session.get(url, params=kwargs)
+        resp = self.session.get(url, params=kwargs)
+        return resp.json()
 
     def get_paginated_resource(self, url, **kwargs):
         next_url = url
         while next_url:
-            res = self.get_resource(next_url, params=kwargs)
-            data = res.json()["data"]
+            resource = self.get_resource(next_url, params=kwargs)
 
             # this is a generator fn
-            for contact in data:
+            for contact in resource["data"]:
                 yield contact
 
-            paging = res.json()["meta"].get("paging")
+            paging = resource["meta"].get("paging")
             if paging:
                if paging.get("next"):
                     next_url = paging["next"]
@@ -32,25 +36,29 @@ class Session:
                 next_url = None
 
     def get_contact(self, id):
-        res = self.get(f"/contacts/{id}.json")
-        return res.json()["data"]
+        url = Session.make_url(f"contacts/{id}")
+        return self.get_resource(url)
 
     def get_contacts(self, **kwargs):
-        url = f"{CLIO_API_BASE_URL_US}/contacts.json"
+        url = Session.make_url("contacts")
         return self.get_paginated_resource(url, kwargs)
 
     def get_who_am_i(self):
-        url = f"{CLIO_API_BASE_URL_US}/users/who_am_i.json"
-        res = self.get_resource(url)
-        data = res.json()["data"]
-        return data
+        url = Session.make_url("users/who_am_i")
+        return self.get_resource(url)
 
     def get_user(self, id):
-        url = f"{CLIO_API_BASE_URL_US}/users/{id}.json"
-        res = self.get_resource(url)
-        data = res.json()["data"]
-        return data
+        url = Session.make_url(f"users/{id}")
+        return self.get_resource(url)
 
-    def get_users(self):
-        url = f"{CLIO_API_BASE_URL_US}/users.json"
-        return self.get_paginated_resource(url)
+    def get_users(self, **kwargs):
+        url = Session.make_url("users")
+        return self.get_paginated_resource(url, kwargs)
+
+    def get_document(self, id):
+        url = Session.make_url(f"documents/{id}")
+        return self.get_resource(url)
+
+    def get_documents(self, **kwargs):
+        url = Session.make_url("documents")
+        return self.get_paginated_resource(url, kwargs)

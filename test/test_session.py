@@ -34,10 +34,42 @@ class TestSession(unittest.TestCase):
                       "name": "Anson MacKeracher"},
                      {"id": "2",
                       "name": "Nick Francis"}]
-        m = MagicMock()
-        m.json.return_value = {"data": test_data,
-                               "meta": {}}
-        self.session.get_resource = MagicMock(return_value=m)
+        self.session.get_resource = MagicMock(return_value={"data": test_data,
+                                                            "meta": {}})
         res = self.session.get_paginated_resource(self.test_url)
         self.assertEqual(tuple(test_data), tuple(res))
-        m.json.assert_called()
+
+    def test_get_contact_url(self):
+        self.session.get_resource = MagicMock()
+        c = self.session.get_contact(1)
+        self.session.get_resource.assert_called_with("https://app.clio.com/api/v4/contacts/1.json")
+
+    def test_get_contacts_url(self):
+        self.session.get_paginated_resource = MagicMock()
+        c = self.session.get_contacts()
+        self.session.get_paginated_resource.assert_called_with("https://app.clio.com/api/v4/contacts.json", {})
+
+    def test_get_who_am_i_url(self):
+        self.session.get_resource = MagicMock()
+        u = self.session.get_who_am_i()
+        self.session.get_resource.assert_called_with("https://app.clio.com/api/v4/users/who_am_i.json")
+
+    def test_user_url(self):
+        self.session.get_resource = MagicMock()
+        u = self.session.get_user(1)
+        self.session.get_resource.assert_called_with("https://app.clio.com/api/v4/users/1.json")
+
+    def test_get_users_url(self):
+        self.session.get_paginated_resource = MagicMock()
+        c = self.session.get_users()
+        self.session.get_paginated_resource.assert_called_with("https://app.clio.com/api/v4/users.json", {})
+
+    def test_document_url(self):
+        self.session.get_resource = MagicMock()
+        u = self.session.get_document(1)
+        self.session.get_resource.assert_called_with("https://app.clio.com/api/v4/documents/1.json")
+
+    def test_get_users_url(self):
+        self.session.get_paginated_resource = MagicMock()
+        c = self.session.get_documents()
+        self.session.get_paginated_resource.assert_called_with("https://app.clio.com/api/v4/documents.json", {})
