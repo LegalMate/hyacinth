@@ -35,30 +35,30 @@ class Session:
                 # break the loop
                 next_url = None
 
-    def get_contact(self, id):
+    def get_contact(self, id, **kwargs):
         url = Session.make_url(f"contacts/{id}")
-        return self.get_resource(url)
+        return self.get_resource(url, **kwargs)
 
     def get_contacts(self, **kwargs):
         url = Session.make_url("contacts")
-        return self.get_paginated_resource(url, kwargs)
+        return self.get_paginated_resource(url, **kwargs)
 
-    def get_who_am_i(self):
+    def get_who_am_i(self, **kwargs):
         url = Session.make_url("users/who_am_i")
-        return self.get_resource(url)
+        return self.get_resource(url, **kwargs)
 
-    def get_user(self, id):
+    def get_user(self, id, **kwargs):
         url = Session.make_url(f"users/{id}")
-        return self.get_resource(url)
+        return self.get_resource(url, **kwargs)
 
     def get_users(self, **kwargs):
         url = Session.make_url("users")
-        return self.get_paginated_resource(url, kwargs)
+        return self.get_paginated_resource(url, **kwargs)
 
-    def get_document(self, id):
+    def get_document(self, id, **kwargs):
         url = Session.make_url(f"documents/{id}")
-        return self.get_resource(url)
+        return self.get_resource(url, **kwargs)
 
     def get_documents(self, **kwargs):
         url = Session.make_url("documents")
-        return self.get_paginated_resource(url, kwargs)
+        return self.get_paginated_resource(url, **kwargs)
