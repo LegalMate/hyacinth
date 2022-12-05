@@ -17,7 +17,7 @@ git clone git@github.com:LegalMate/hyacinth.git
 
 Install `hyacinth` in your project:
 ```python
-pipenv install path/to/hyacinth
+pipenv install -e path/to/hyacinth
 ```
 
 Import `hyacinth`:
