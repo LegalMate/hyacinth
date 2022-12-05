@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hyacinth"
+version = "0.0.1"
+authors = [
+  { name="Anson MacKeracher", email="anson@legalmate.co" },
+]
+description = "Python HTTP Client library for the Clio Manage API"
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/LegalMate/hyacinth"
+"Bug Tracker" = "https://github.com/LegalMate/hyacinth/issues"
