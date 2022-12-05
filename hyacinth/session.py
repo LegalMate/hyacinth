@@ -27,12 +27,13 @@ class Session:
 
             paging = resource["meta"].get("paging")
             if paging:
-               if paging.get("next"):
+                if paging.get("next"):
                     next_url = paging["next"]
-               else:
+                else:
+                    # no more next page, break
                     next_url = None
             else:
-                # break the loop
+                # no paging meta, break the loop
                 next_url = None
 
     def get_contact(self, id, **kwargs):
