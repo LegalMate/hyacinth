@@ -19,7 +19,7 @@ class Session:
     def get_paginated_resource(self, url, **kwargs):
         next_url = url
         while next_url:
-            resource = self.get_resource(next_url, params=kwargs)
+            resource = self.get_resource(next_url, **kwargs)
 
             # this is a generator fn
             for contact in resource["data"]:
