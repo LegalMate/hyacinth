@@ -12,6 +12,7 @@ ipdb = "*"
 bandit = "*"
 flake8 = "*"
 black = "*"
+pytest = "*"
 
 [requires]
 python_version = "3.10"

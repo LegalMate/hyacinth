@@ -63,3 +63,11 @@ class Session:
     def get_documents(self, **kwargs):
         url = Session.make_url("documents")
         return self.get_paginated_resource(url, **kwargs)
+
+    def get_matter(self, id, **kwargs):
+        url = Session.make_url(f"matters/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def get_matters(self, **kwargs):
+        url = Session.make_url("matters")
+        return self.get_paginated_resource(url, **kwargs)

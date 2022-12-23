@@ -129,3 +129,29 @@ class TestSession(unittest.TestCase):
         self.session.get_paginated_resource.assert_called_with(
             "https://app.clio.com/api/v4/documents.json",
             fields=test_fields)
+
+    def test_matter_url(self):
+        self.session.get_resource = MagicMock()
+        u = self.session.get_matter(1)
+        self.session.get_resource.assert_called_with("https://app.clio.com/api/v4/matters/1.json")
+
+    def test_matter_fields(self):
+        self.session.get_resource = MagicMock()
+        test_fields = "id,client{id,first_name,last_name}"
+        u = self.session.get_matter(1, fields=test_fields)
+        self.session.get_resource.assert_called_with(
+            "https://app.clio.com/api/v4/matters/1.json",
+            fields=test_fields)
+
+    def test_get_matters_url(self):
+        self.session.get_paginated_resource = MagicMock()
+        c = self.session.get_matters()
+        self.session.get_paginated_resource.assert_called_with("https://app.clio.com/api/v4/matters.json")
+
+    def test_get_matters_fields(self):
+        self.session.get_paginated_resource = MagicMock()
+        test_fields = "id,client{id,first_name,last_name},"
+        u = self.session.get_matters(fields=test_fields)
+        self.session.get_paginated_resource.assert_called_with(
+            "https://app.clio.com/api/v4/matters.json",
+            fields=test_fields)
