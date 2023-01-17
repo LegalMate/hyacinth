@@ -103,7 +103,7 @@ class Session:
                 "parent_id": parent_id,
                 "parent_type": parent_type
             },
-            fields="id,latest_document_version{uuid,put_url,put_headers}"
+            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"}
         )
 
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
@@ -114,7 +114,7 @@ class Session:
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
-            fields="id,name,latest_document_version{fully_uploaded}",
+            params={"fields": "id,name,latest_document_version{fully_uploaded}"},
             json={
                 "data": {
                     "uuid": clio_document["data"]["latest_document_version"]["uuid"],
