@@ -107,8 +107,6 @@ class Session:
             }
         )
 
-        print(clio_document)
-
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
         put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
 
@@ -116,20 +114,13 @@ class Session:
         for header in put_headers:
             headers_map[header['name']] = header['value']
 
-        print(put_url, headers_map)
-
         # We actually DON'T want to use the authenticated client here
-        put_resp = requests.put(
+        requests.put(
             put_url,
             headers=headers_map,
             data=document
         )
 
-        print(put_resp)
-        print(put_resp.text)
-
-        # PURE JANK
-        # time.sleep(1)
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
@@ -141,7 +132,5 @@ class Session:
                 }
             }
         )
-
-        print(patch_resp)
 
         return patch_resp
