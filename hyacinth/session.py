@@ -117,7 +117,7 @@ class Session:
 
         print(put_url, put_headers)
 
-        self.__put_resource(put_url, put_headers, document)
+        self.__put_resource(put_url, headers=put_headers, data=document)
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
