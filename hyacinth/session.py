@@ -1,3 +1,4 @@
+import time
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_API_BASE_URL_US="https://app.clio.com/api/v4"
@@ -121,8 +122,12 @@ class Session:
 
         print(put_url, headers_map)
 
-        self.__put_resource(put_url, headers=headers_map, data=document)
+        put_resp = self.__put_resource(put_url, headers=headers_map, data=document)
 
+        print(put_resp)
+
+        # PURE JANK
+        # time.sleep(1)
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
@@ -137,4 +142,4 @@ class Session:
 
         print(patch_resp)
 
-        return patch_resp.json()
+        return patch_resp
