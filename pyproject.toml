@@ -1,21 +1,23 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[project]
+[tool.poetry]
 name = "hyacinth"
-version = "0.0.1"
-authors = [
-  { name="Anson MacKeracher", email="anson@legalmate.co" },
-]
-description = "Python HTTP Client library for the Clio Manage API"
+version = "0.1.0"
+description = ""
+authors = ["Anson MacKeracher <anson@legalmate.co>"]
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.7"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Operating System :: OS Independent",
-]
 
-[project.urls]
-"Homepage" = "https://github.com/LegalMate/hyacinth"
-"Bug Tracker" = "https://github.com/LegalMate/hyacinth/issues"
+[tool.poetry.dependencies]
+python = "^3.10"
+Authlib = "^1.2.0"
+requests = "^2.28.2"
+
+[tool.poetry.group.dev.dependencies]
+ipdb = "^0.13.11"
+bandit = "^1.7.4"
+flake8 = "^6.0.0"
+black = "^22.12.0"
+pytest = "^7.2.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

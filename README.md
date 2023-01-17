@@ -17,7 +17,7 @@ git clone git@github.com:LegalMate/hyacinth.git
 
 Install `hyacinth` in your project:
 ```python
-pipenv install -e path/to/hyacinth
+poetry install git:ssh//git@github.com/LegalMate/harmonia.git
 ```
 
 Import `hyacinth`:
@@ -43,6 +43,13 @@ print(me)
 => {'id': 350963386, 'etag': '"14eb46ba60ce9c2e6a68f6d0d2c36334"', 'name': 'Anson MacKeracher'}
 ```
 
-d## Development
+## Development
+
+If you'd like to contribute to `hyacinth`'s development, here's how to
+get your environment set up:
+
 1. `pipenv --python 3.10`
-2. `pipenv install`
+2. `poetry install`
+
+Feel free to submit a Pull Request with any changes. Things are
+low-key, and low-process for the time being. Don't be a stranger!
