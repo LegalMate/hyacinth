@@ -98,12 +98,14 @@ class Session:
         post_url = Session.__make_url("documents")
         clio_document = self.__post_resource(
             post_url,
-            {
-                "name": name,
-                "parent_id": parent_id,
-                "parent_type": parent_type
-            },
-            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"}
+            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
+            json={
+                "data": {
+                    "name": name,
+                    "parent_id": parent_id,
+                    "parent_type": parent_type
+                }
+            }
         )
 
         print(clio_document)
