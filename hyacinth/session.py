@@ -122,9 +122,13 @@ class Session:
 
         print(put_url, headers_map)
 
-        put_resp = self.__put_resource(put_url, headers=headers_map, data=document)
+        put_resp = self.__put_resource(
+            put_url,
+            headers=headers_map,
+            data=document)
 
         print(put_resp)
+        print(put_resp.text)
 
         # PURE JANK
         # time.sleep(1)
