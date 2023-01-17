@@ -102,8 +102,10 @@ class Session:
             json={
                 "data": {
                     "name": name,
-                    "parent_id": parent_id,
-                    "parent_type": parent_type
+                    "parent": {
+                        "id": parent_id,
+                        "type": parent_type
+                    }
                 }
             }
         )
