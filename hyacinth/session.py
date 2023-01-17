@@ -115,9 +115,13 @@ class Session:
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
         put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
 
-        print(put_url, put_headers)
+        headers_map = {}
+        for header in put_headers:
+            headers_map[header['name']] = header['value']
 
-        self.__put_resource(put_url, headers=put_headers, data=document)
+        print(put_url, headers_map)
+
+        self.__put_resource(put_url, headers=headers_map, data=document)
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
