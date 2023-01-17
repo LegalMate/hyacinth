@@ -42,7 +42,7 @@ class Session:
 
     def __put_resource(self, url,  **kwargs):
         resp = self.session.put(url, **kwargs)
-        return resp.json()
+        return resp
 
     def __patch_resource(self, url, json, **kwargs):
         resp = self.session.patch(url, json=json, **kwargs)
