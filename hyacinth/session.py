@@ -1,4 +1,4 @@
-import time
+import requests
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_API_BASE_URL_US="https://app.clio.com/api/v4"
@@ -40,10 +40,6 @@ class Session:
     def __post_resource(self, url, json, **kwargs):
         resp = self.session.post(url, json=json, **kwargs)
         return resp.json()
-
-    def __put_resource(self, url,  **kwargs):
-        resp = self.session.put(url, **kwargs)
-        return resp
 
     def __patch_resource(self, url, json, **kwargs):
         resp = self.session.patch(url, json=json, **kwargs)
@@ -122,10 +118,12 @@ class Session:
 
         print(put_url, headers_map)
 
-        put_resp = self.__put_resource(
+        # We actually DON'T want to use the authenticated client here
+        put_resp = requests.put(
             put_url,
             headers=headers_map,
-            data=document)
+            data=document
+        )
 
         print(put_resp)
         print(put_resp.text)
