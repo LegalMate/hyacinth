@@ -106,8 +106,12 @@ class Session:
             params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"}
         )
 
+        print(clio_document)
+
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
         put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
+
+        print(put_url, put_headers)
 
         self.__put_resource(put_url, put_headers, document)
 
@@ -122,5 +126,7 @@ class Session:
                 }
             }
         )
+
+        print(patch_resp)
 
         return patch_resp.json()
