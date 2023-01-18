@@ -10,7 +10,7 @@ CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
 
 
-def __ratelimit(f):
+def ratelimit(f):
     def wrapper(self, *args):
         print("__ratelimit")
         print(self.ratelimit, self.ratelimit_limit, self.ratelimit_remaining)
@@ -62,17 +62,17 @@ class Session:
                 CLIO_API_RATELIMIT_REMAINING_HEADER
             )
 
-    @__ratelimit
+    @ratelimit
     def __get_resource(self, url, **kwargs):
         resp = self.session.get(url, params=kwargs)
         return resp.json()
 
-    @__ratelimit
+    @ratelimit
     def __post_resource(self, url, json, **kwargs):
         resp = self.session.post(url, json=json, **kwargs)
         return resp.json()
 
-    @__ratelimit
+    @ratelimit
     def __patch_resource(self, url, json, **kwargs):
         resp = self.session.patch(url, json=json, **kwargs)
         return resp.json()
@@ -95,7 +95,6 @@ class Session:
             else:
                 # no paging meta, break the loop
                 next_url = None
-
 
     def get_contact(self, id, **kwargs):
         """GET a Contact."""
