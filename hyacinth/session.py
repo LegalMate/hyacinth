@@ -1,32 +1,86 @@
+import functools
+import logging
+import math
 import requests
+import time
 from authlib.integrations.requests_client import OAuth2Session
 
-CLIO_API_BASE_URL_US="https://app.clio.com/api/v4"
+CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
+CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
+CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
+CLIO_API_RETRY_AFTER = "Retry-After"
+
+
+def ratelimit(f):
+    def wrapper(self, *args):
+        resp = f(self, *args)
+
+        if resp.status_code == 429 and self.ratelimit:
+            retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
+            logging.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
+            time.sleep(int(retry_after))
+
+            # Retry the request
+            resp = f(self, *args)
+
+        self.update_ratelimits(resp)
+        return resp.json()
+    return wrapper
+
 
 class Session:
-    def __init__(self, token, client_id, client_secret):
+    """Session class for interacting with Clio Manage API.
+
+    WARNING: enabling `ratelimit` will block the process synchronously
+    when API rate limits are hit. Support for async hyacinth is coming
+    soon.
+
+    """
+
+    def __init__(self, token, client_id, client_secret, ratelimit=False):
+        """Initialize Session with optional ratelimits."""
         self.session = OAuth2Session(client_id=client_id,
                                      client_secret=client_secret,
                                      token=token)
+
+        self.ratelimit = ratelimit
+        self.ratelimit_limit = math.inf
+        self.ratelimit_remaining = math.inf
 
     @staticmethod
     def __make_url(path):
         return f"{CLIO_API_BASE_URL_US}/{path}.json"
 
+    def update_ratelimits(self, response):
+        if self.ratelimit:
+            self.ratelimit_limit = response.headers.get(
+                CLIO_API_RATELIMIT_LIMIT_HEADER
+            )
+            self.ratelimit_remaining = response.headers.get(
+                CLIO_API_RATELIMIT_REMAINING_HEADER
+            )
+
+    @ratelimit
     def __get_resource(self, url, **kwargs):
-        resp = self.session.get(url, params=kwargs)
-        return resp.json()
+        return self.session.get(url, params=kwargs)
+
+    @ratelimit
+    def __post_resource(self, url, json, **kwargs):
+        return self.session.post(url, json=json, **kwargs)
+
+    @ratelimit
+    def __patch_resource(self, url, json, **kwargs):
+        return self.session.patch(url, json=json, **kwargs)
 
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
         while next_url:
-            resource = self.get_resource(next_url, **kwargs)
+            resp = self.get_resource(next_url, **kwargs)
 
-            # this is a generator fn
-            for contact in resource["data"]:
-                yield contact
+            for datum in resp["data"]:
+                yield datum
 
-            paging = resource["meta"].get("paging")
+            paging = resp["meta"].get("paging")
             if paging:
                 if paging.get("next"):
                     next_url = paging["next"]
@@ -36,14 +90,6 @@ class Session:
             else:
                 # no paging meta, break the loop
                 next_url = None
-
-    def __post_resource(self, url, json, **kwargs):
-        resp = self.session.post(url, json=json, **kwargs)
-        return resp.json()
-
-    def __patch_resource(self, url, json, **kwargs):
-        resp = self.session.patch(url, json=json, **kwargs)
-        return resp.json()
 
     def get_contact(self, id, **kwargs):
         """GET a Contact."""
