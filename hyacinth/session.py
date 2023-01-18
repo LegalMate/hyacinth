@@ -7,6 +7,7 @@ from authlib.integrations.requests_client import OAuth2Session
 CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
+CLIO_API_RETRY_AFTER = "Retry-After"
 
 
 def __ratelimit(f):
@@ -17,7 +18,7 @@ def __ratelimit(f):
         resp = f(self, *args)
 
         if resp.status == 429:
-            retry_after = resp.headers.get("Retry-After")
+            retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             print(f"Sleeping for {retry_after}s")
             time.sleep(retry_after)
 
@@ -54,8 +55,12 @@ class Session:
 
     def __update_ratelimits(self, response):
         if self.ratelimit:
-            self.ratelimit_limit = response.headers.get("X-RateLimit-Limit")
-            self.ratelimit_remaining = response.headers.get("X-RateLimit-Remaining")
+            self.ratelimit_limit = response.headers.get(
+                CLIO_API_RATELIMIT_LIMIT_HEADER
+            )
+            self.ratelimit_remaining = response.headers.get(
+                CLIO_API_RATELIMIT_REMAINING_HEADER
+            )
 
     @__ratelimit
     def __get_resource(self, url, **kwargs):
