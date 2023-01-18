@@ -20,7 +20,7 @@ def ratelimit(f):
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             print(f"Sleeping for {retry_after}s")
-            time.sleep(retry_after)
+            time.sleep(int(retry_after))
 
             # Retry the request
             resp = f(self, *args)
