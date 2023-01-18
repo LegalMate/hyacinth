@@ -1,4 +1,5 @@
 import functools
+import logging
 import math
 import requests
 import time
@@ -12,14 +13,11 @@ CLIO_API_RETRY_AFTER = "Retry-After"
 
 def ratelimit(f):
     def wrapper(self, *args):
-        print("__ratelimit")
-        print(self.ratelimit, self.ratelimit_limit, self.ratelimit_remaining)
-
         resp = f(self, *args)
 
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
-            print(f"Sleeping for {retry_after}s")
+            logging.info(f"Sleeping for {retry_after}s")
             time.sleep(int(retry_after))
 
             # Retry the request
