@@ -26,7 +26,7 @@ def ratelimit(f):
             resp = f(self, *args)
 
         self.__update_ratelimits(resp)
-        return resp
+        return resp.json()
     return wrapper
 
 
@@ -64,18 +64,15 @@ class Session:
 
     @ratelimit
     def __get_resource(self, url, **kwargs):
-        resp = self.session.get(url, params=kwargs)
-        return resp.json()
+        return self.session.get(url, params=kwargs)
 
     @ratelimit
     def __post_resource(self, url, json, **kwargs):
-        resp = self.session.post(url, json=json, **kwargs)
-        return resp.json()
+        return self.session.post(url, json=json, **kwargs)
 
     @ratelimit
     def __patch_resource(self, url, json, **kwargs):
-        resp = self.session.patch(url, json=json, **kwargs)
-        return resp.json()
+        return self.session.patch(url, json=json, **kwargs)
 
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
