@@ -25,7 +25,7 @@ def ratelimit(f):
             # Retry the request
             resp = f(self, *args)
 
-        self.__update_ratelimits(resp)
+        self.update_ratelimits(resp)
         return resp.json()
     return wrapper
 
@@ -53,7 +53,7 @@ class Session:
     def __make_url(path):
         return f"{CLIO_API_BASE_URL_US}/{path}.json"
 
-    def __update_ratelimits(self, response):
+    def update_ratelimits(self, response):
         if self.ratelimit:
             self.ratelimit_limit = response.headers.get(
                 CLIO_API_RATELIMIT_LIMIT_HEADER
