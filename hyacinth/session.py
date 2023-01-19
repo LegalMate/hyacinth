@@ -143,10 +143,12 @@ class Session:
         return self.__post_resource(
             url,
             json={
-                "name": name,
-                "parent": {
-                    "id": parent_id,
-                    "type": parent_type
+                "data": {
+                    "name": name,
+                    "parent": {
+                        "id": parent_id,
+                        "type": parent_type
+                    }
                 }
             }
         )
