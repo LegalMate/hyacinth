@@ -169,6 +169,7 @@ class Session:
                 }
             }
         )
+        print(clio_document)
 
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
         put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
