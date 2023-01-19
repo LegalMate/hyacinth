@@ -66,11 +66,11 @@ class Session:
 
     @ratelimit
     def __post_resource(self, url, json, **kwargs):
-        return self.session.post(url, json=json, **kwargs)
+        return self.session.post(url, json=json, params=kwargs)
 
     @ratelimit
     def __patch_resource(self, url, json, **kwargs):
-        return self.session.patch(url, json=json, **kwargs)
+        return self.session.patch(url, json=json, params=kwargs)
 
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
