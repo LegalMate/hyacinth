@@ -136,11 +136,19 @@ class Session:
         url = Session.__make_url("matters")
         return self.__get_paginated_resource(url, **kwargs)
 
-    def post_file(self, name, parent_id, **kwargs):
+    def post_file(self, name, parent_id, parent_type, **kwargs):
         """POST a new Folder."""
         url = Session.__make_url("folders")
-        return self.__post_resource(url, json={"name": name,
-                                               "parent_id": parent_id})
+        return self.__post_resource(
+            url,
+            json={
+                "name": name,
+                "parent": {
+                    "id": parent_id,
+                    "type": parent_type
+                }
+            }
+        )
 
     def upload_document(self, name, parent_id, parent_type, document):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
