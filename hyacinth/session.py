@@ -136,7 +136,7 @@ class Session:
         url = Session.__make_url("matters")
         return self.__get_paginated_resource(url, **kwargs)
 
-    def post_file(self, name, parent_id, parent_type, **kwargs):
+    def post_folder(self, name, parent_id, parent_type, **kwargs):
         """POST a new Folder."""
         url = Session.__make_url("folders")
         return self.__post_resource(
