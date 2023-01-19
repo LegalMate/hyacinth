@@ -158,7 +158,7 @@ class Session:
         post_url = Session.__make_url("documents")
         clio_document = self.__post_resource(
             post_url,
-            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
+            fields="id,latest_document_version{uuid,put_url,put_headers}",
             json={
                 "data": {
                     "name": name,
@@ -188,7 +188,7 @@ class Session:
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
-            params={"fields": "id,name,latest_document_version{fully_uploaded}"},
+            fields="id,name,latest_document_version{fully_uploaded}",
             json={
                 "data": {
                     "uuid": clio_document["data"]["latest_document_version"]["uuid"],
