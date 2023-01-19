@@ -12,8 +12,9 @@ CLIO_API_RETRY_AFTER = "Retry-After"
 
 
 def ratelimit(f):
-    def wrapper(self, *args):
-        resp = f(self, *args)
+    @functools.wraps(f)
+    def wrapper(self, *args, **kwargs):
+        resp = f(self, *args, **kwargs)
 
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
@@ -21,7 +22,7 @@ def ratelimit(f):
             time.sleep(int(retry_after))
 
             # Retry the request
-            resp = f(self, *args)
+            resp = f(self, *args, **kwargs)
 
         self.update_ratelimits(resp)
         return resp.json()
