@@ -140,7 +140,6 @@ class Session:
     def post_folder(self, name, parent_id, parent_type, **kwargs):
         """POST a new Folder."""
         url = Session.__make_url("folders")
-        print(url)
         return self.__post_resource(
             url,
             json={
