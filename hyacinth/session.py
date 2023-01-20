@@ -12,6 +12,7 @@ CLIO_API_RETRY_AFTER = "Retry-After"
 
 
 def ratelimit(f):
+    @functools.wraps(f)
     def wrapper(self, *args, **kwargs):
         resp = f(self, *args, **kwargs)
 
@@ -66,11 +67,11 @@ class Session:
 
     @ratelimit
     def __post_resource(self, url, json, **kwargs):
-        return self.session.post(url, json=json, **kwargs)
+        return self.session.post(url, json=json, params=kwargs)
 
     @ratelimit
     def __patch_resource(self, url, json, **kwargs):
-        return self.session.patch(url, json=json, **kwargs)
+        return self.session.patch(url, json=json, params=kwargs)
 
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
@@ -136,12 +137,28 @@ class Session:
         url = Session.__make_url("matters")
         return self.__get_paginated_resource(url, **kwargs)
 
+    def post_folder(self, name, parent_id, parent_type, **kwargs):
+        """POST a new Folder."""
+        url = Session.__make_url("folders")
+        return self.__post_resource(
+            url,
+            json={
+                "data": {
+                    "name": name,
+                    "parent": {
+                        "id": parent_id,
+                        "type": parent_type
+                    }
+                }
+            }
+        )
+
     def upload_document(self, name, parent_id, parent_type, document):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         post_url = Session.__make_url("documents")
         clio_document = self.__post_resource(
             post_url,
-            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
+            fields="id,latest_document_version{uuid,put_url,put_headers}",
             json={
                 "data": {
                     "name": name,
@@ -170,7 +187,7 @@ class Session:
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
-            params={"fields": "id,name,latest_document_version{fully_uploaded}"},
+            fields="id,name,latest_document_version{fully_uploaded}",
             json={
                 "data": {
                     "uuid": clio_document["data"]["latest_document_version"]["uuid"],
