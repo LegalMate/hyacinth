@@ -76,7 +76,7 @@ class Session:
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
         while next_url:
-            resp = self.get_resource(next_url, **kwargs)
+            resp = self.__get_resource(next_url, **kwargs)
 
             for datum in resp["data"]:
                 yield datum
