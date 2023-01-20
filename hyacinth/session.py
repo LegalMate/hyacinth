@@ -12,8 +12,8 @@ CLIO_API_RETRY_AFTER = "Retry-After"
 
 
 def ratelimit(f):
-    def wrapper(self, *args):
-        resp = f(self, *args)
+    def wrapper(self, *args, **kwargs):
+        resp = f(self, *args, **kwargs)
 
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
@@ -21,7 +21,7 @@ def ratelimit(f):
             time.sleep(int(retry_after))
 
             # Retry the request
-            resp = f(self, *args)
+            resp = f(self, *args, **kwargs)
 
         self.update_ratelimits(resp)
         return resp.json()
@@ -75,7 +75,7 @@ class Session:
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
         while next_url:
-            resp = self.get_resource(next_url, **kwargs)
+            resp = self.__get_resource(next_url, **kwargs)
 
             for datum in resp["data"]:
                 yield datum
