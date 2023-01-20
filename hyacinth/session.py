@@ -38,7 +38,8 @@ class Session:
 
     """
 
-    def __init__(self, token, client_id, client_secret, ratelimit=False):
+    def __init__(self, token, client_id, client_secret,
+                 ratelimit=False, raise_for_status=False):
         """Initialize Session with optional ratelimits."""
         self.session = OAuth2Session(client_id=client_id,
                                      client_secret=client_secret,
@@ -47,6 +48,7 @@ class Session:
         self.ratelimit = ratelimit
         self.ratelimit_limit = math.inf
         self.ratelimit_remaining = math.inf
+        self.raise_for_status = raise_for_status
 
     @staticmethod
     def __make_url(path):
@@ -63,15 +65,24 @@ class Session:
 
     @ratelimit
     def __get_resource(self, url, **kwargs):
-        return self.session.get(url, params=kwargs)
+        r = self.session.get(url, params=kwargs)
+        if self.raise_for_status:
+            r.raise_for_status()
+        return r
 
     @ratelimit
     def __post_resource(self, url, json, **kwargs):
-        return self.session.post(url, json=json, params=kwargs)
+        r = self.session.post(url, json=json, params=kwargs)
+        if self.raise_for_status:
+            r.raise_for_status()
+        return r
 
     @ratelimit
     def __patch_resource(self, url, json, **kwargs):
-        return self.session.patch(url, json=json, params=kwargs)
+        r = self.session.patch(url, json=json, params=kwargs)
+        if self.raise_for_status:
+            r.raise_for_status()
+        return r
 
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
