@@ -165,7 +165,7 @@ class Session:
 
     def delete_folder(self, id, **kwargs):
         """DELETE an existing Folder."""
-        url = Session.__make_url(f"folders/{id}.json")
+        url = Session.__make_url(f"folders/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def upload_document(self, name, parent_id, parent_type, document):
