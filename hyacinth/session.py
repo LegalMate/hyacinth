@@ -28,6 +28,7 @@ def ratelimit(f):
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
+        print(f"content: {resp.content}")
         return resp.json()
     return wrapper
 
