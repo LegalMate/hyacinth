@@ -159,7 +159,8 @@ class Session:
                         "type": parent_type
                     }
                 }
-            }
+            },
+            **kwargs
         )
 
     def delete_folder(self, id, **kwargs):
