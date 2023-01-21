@@ -78,6 +78,10 @@ class Session:
     def __patch_resource(self, url, json, **kwargs):
         return self.session.patch(url, json=json, params=kwargs)
 
+    @ratelimit
+    def __delete_resource(self, url, **kwargs):
+        return self.session.delete(url, params=kwargs)
+
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
         while next_url:
@@ -157,6 +161,11 @@ class Session:
                 }
             }
         )
+
+    def delete_folder(self, id, **kwargs):
+        """DELETE an existing Folder."""
+        url = Session.__make_url(f"folders/{id}.json")
+        return self.__delete_resource(url, **kwargs)
 
     def upload_document(self, name, parent_id, parent_type, document):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
