@@ -28,8 +28,13 @@ def ratelimit(f):
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
-        print(f"content: {resp.content}")
+
+        # DELETE responses have no content
+        if not resp.content:
+            return None
+
         return resp.json()
+
     return wrapper
 
 
