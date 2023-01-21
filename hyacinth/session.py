@@ -24,6 +24,9 @@ def ratelimit(f):
             # Retry the request
             resp = f(self, *args, **kwargs)
 
+        elif self.raise_for_status:
+            resp.raise_for_status()
+
         self.update_ratelimits(resp)
         return resp.json()
     return wrapper
@@ -38,7 +41,8 @@ class Session:
 
     """
 
-    def __init__(self, token, client_id, client_secret, ratelimit=False):
+    def __init__(self, token, client_id, client_secret,
+                 ratelimit=False, raise_for_status=False):
         """Initialize Session with optional ratelimits."""
         self.session = OAuth2Session(client_id=client_id,
                                      client_secret=client_secret,
@@ -47,6 +51,7 @@ class Session:
         self.ratelimit = ratelimit
         self.ratelimit_limit = math.inf
         self.ratelimit_remaining = math.inf
+        self.raise_for_status = raise_for_status
 
     @staticmethod
     def __make_url(path):
