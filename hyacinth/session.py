@@ -29,6 +29,7 @@ def ratelimit(f):
 
         self.update_ratelimits(resp)
         return resp.json()
+
     return wrapper
 
 
@@ -41,12 +42,13 @@ class Session:
 
     """
 
-    def __init__(self, token, client_id, client_secret,
-                 ratelimit=False, raise_for_status=False):
+    def __init__(
+        self, token, client_id, client_secret, ratelimit=False, raise_for_status=False
+    ):
         """Initialize Session with optional ratelimits."""
-        self.session = OAuth2Session(client_id=client_id,
-                                     client_secret=client_secret,
-                                     token=token)
+        self.session = OAuth2Session(
+            client_id=client_id, client_secret=client_secret, token=token
+        )
 
         self.ratelimit = ratelimit
         self.ratelimit_limit = math.inf
@@ -59,9 +61,7 @@ class Session:
 
     def update_ratelimits(self, response):
         if self.ratelimit:
-            self.ratelimit_limit = response.headers.get(
-                CLIO_API_RATELIMIT_LIMIT_HEADER
-            )
+            self.ratelimit_limit = response.headers.get(CLIO_API_RATELIMIT_LIMIT_HEADER)
             self.ratelimit_remaining = response.headers.get(
                 CLIO_API_RATELIMIT_REMAINING_HEADER
             )
@@ -146,21 +146,25 @@ class Session:
         url = Session.__make_url("matters")
         return self.__get_paginated_resource(url, **kwargs)
 
+    def get_folder(self, id, **kwargs):
+        """GET a Document."""
+        url = Session.__make_url(f"folders/{id}")
+        return self.__get_resource(url, **kwargs)
+
+    def get_folders(self, **kwargs):
+        """GET a Document."""
+        url = Session.__make_url(f"folders")
+        return self.__get_resource(url, **kwargs)
+
     def post_folder(self, name, parent_id, parent_type, **kwargs):
         """POST a new Folder."""
         url = Session.__make_url("folders")
         return self.__post_resource(
             url,
             json={
-                "data": {
-                    "name": name,
-                    "parent": {
-                        "id": parent_id,
-                        "type": parent_type
-                    }
-                }
+                "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
             },
-            **kwargs
+            **kwargs,
         )
 
     def delete_folder(self, id, **kwargs):
@@ -175,14 +179,8 @@ class Session:
             post_url,
             fields="id,latest_document_version{uuid,put_url,put_headers}",
             json={
-                "data": {
-                    "name": name,
-                    "parent": {
-                        "id": parent_id,
-                        "type": parent_type
-                    }
-                }
-            }
+                "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+            },
         )
 
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
@@ -190,14 +188,10 @@ class Session:
 
         headers_map = {}
         for header in put_headers:
-            headers_map[header['name']] = header['value']
+            headers_map[header["name"]] = header["value"]
 
         # We actually DON'T want to use the authenticated client here
-        requests.put(
-            put_url,
-            headers=headers_map,
-            data=document
-        )
+        requests.put(put_url, headers=headers_map, data=document)
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
@@ -206,9 +200,9 @@ class Session:
             json={
                 "data": {
                     "uuid": clio_document["data"]["latest_document_version"]["uuid"],
-                    "fully_uploaded": True
+                    "fully_uploaded": True,
                 }
-            }
+            },
         )
 
         return patch_resp
