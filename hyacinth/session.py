@@ -107,7 +107,7 @@ class Session:
                 next_url = None
 
     def get_contact(self, id, **kwargs):
-        """GET a Contact."""
+        """GET a Contact with provided ID."""
         url = Session.__make_url(f"contacts/{id}")
         return self.__get_resource(url, **kwargs)
 
@@ -122,7 +122,7 @@ class Session:
         return self.__get_resource(url, **kwargs)
 
     def get_user(self, id, **kwargs):
-        """GET a single User."""
+        """GET a single Userwith provided ID."""
         url = Session.__make_url(f"users/{id}")
         return self.__get_resource(url, **kwargs)
 
@@ -132,7 +132,7 @@ class Session:
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_document(self, id, **kwargs):
-        """GET a Document."""
+        """GET a Document with provided ID."""
         url = Session.__make_url(f"documents/{id}")
         return self.__get_resource(url, **kwargs)
 
@@ -142,9 +142,21 @@ class Session:
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_matter(self, id, **kwargs):
-        """GET a Matter."""
+        """GET a Matter with provided ID."""
         url = Session.__make_url(f"matters/{id}")
         return self.__get_resource(url, **kwargs)
+
+    def patch_matter(self, id, json, **kwargs):
+        """PATCH a Matter with provided ID with provided JSON."""
+        url = Session.__make_url(f"matters/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
+    # def update_matter_custom_fields(self, id, field_ids, field_values):
+    #     """PATCHes a Matter with provided ID with the provided custom field updates."""
+    #     self.patch_matter(
+    #         id,
+    #         {
+    #             "custom_fields_values":
 
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
@@ -173,7 +185,7 @@ class Session:
         )
 
     def delete_folder(self, id, **kwargs):
-        """DELETE an existing Folder."""
+        """DELETE an existing Folder with provided ID."""
         url = Session.__make_url(f"folders/{id}")
         return self.__delete_resource(url, **kwargs)
 
