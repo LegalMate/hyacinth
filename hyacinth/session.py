@@ -116,6 +116,11 @@ class Session:
         url = Session.__make_url("contacts")
         return self.__get_paginated_resource(url, **kwargs)
 
+    def get_custom_fields(self, **kwargs):
+        """GET a list of Cusom Fields."""
+        url = Session.__make_url("custom_fields")
+        return self.__get_paginated_resource(url, **kwargs)
+
     def get_who_am_i(self, **kwargs):
         """GET currently authenticated User."""
         url = Session.__make_url("users/who_am_i")
