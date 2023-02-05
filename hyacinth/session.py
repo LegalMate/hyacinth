@@ -158,7 +158,7 @@ class Session:
 
     def get_folders(self, **kwargs):
         """GET a Document."""
-        url = Session.__make_url(f"folders")
+        url = Session.__make_url("folders")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_folder(self, name, parent_id, parent_type, **kwargs):
