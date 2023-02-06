@@ -178,6 +178,11 @@ class Session:
     #         {
     #             "custom_fields_values":
 
+    def post_note(self, json, **kwargs):
+        """POST a new Note."""
+        url = Session.__make_url("notes")
+        return self.__post_resource(url, json=json, **kwargs)
+
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = Session.__make_url("matters")
