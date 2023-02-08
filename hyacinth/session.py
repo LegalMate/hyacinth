@@ -171,13 +171,6 @@ class Session:
         url = Session.__make_url(f"matters/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
-    # def update_matter_custom_fields(self, id, field_ids, field_values):
-    #     """PATCHes a Matter with provided ID with the provided custom field updates."""
-    #     self.patch_matter(
-    #         id,
-    #         {
-    #             "custom_fields_values":
-
     def post_note(self, json, **kwargs):
         """POST a new Note."""
         url = Session.__make_url("notes")
