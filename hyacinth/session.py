@@ -241,3 +241,18 @@ class Session:
         )
 
         return patch_resp
+
+    def post_webhook(self, url, model, events):
+        post_url = Session.__make_url("webhooks")
+        return self.__post_resource(
+            post_url,
+            json={
+                "data": {
+                    "fields": "id",
+                    "events": events,
+                    "model": model,
+                    "url": url,
+                },
+            },
+            fields="id,shared_secret,status",
+        )
