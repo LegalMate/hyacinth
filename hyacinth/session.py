@@ -10,6 +10,9 @@ CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
 
+log = logging.getLogger(__name__)
+log.addHandler(logging.NullHandler())
+
 
 def ratelimit(f):
     @functools.wraps(f)
@@ -18,7 +21,7 @@ def ratelimit(f):
 
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
-            logging.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
+            log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
             time.sleep(int(retry_after))
 
             # Retry the request
