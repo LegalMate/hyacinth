@@ -53,3 +53,11 @@ get your environment set up:
 
 Feel free to submit a Pull Request with any changes. Things are
 low-key, and low-process for the time being. Don't be a stranger!
+
+### Tests
+
+Run the test suite via:
+
+```sh
+poetry run test
+```
