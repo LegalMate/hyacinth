@@ -101,4 +101,4 @@ jobs:
         key: ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-poetry-${{ hashFiles('poetry.lock') }}
     - name: Run unit tests
       run: |
-        poetry run python -m unittest discover -s 'test'
+        poetry run test
