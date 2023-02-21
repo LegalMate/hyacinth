@@ -48,8 +48,9 @@ print(me)
 If you'd like to contribute to `hyacinth`'s development, here's how to
 get your environment set up:
 
-1. `pipenv --python 3.10`
-2. `poetry install`
+```sh
+poetry install
+```
 
 Feel free to submit a Pull Request with any changes. Things are
 low-key, and low-process for the time being. Don't be a stranger!
