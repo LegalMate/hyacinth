@@ -174,13 +174,6 @@ class Session:
         url = Session.__make_url(f"matters/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
-    # def update_matter_custom_fields(self, id, field_ids, field_values):
-    #     """PATCHes a Matter with provided ID with the provided custom field updates."""
-    #     self.patch_matter(
-    #         id,
-    #         {
-    #             "custom_fields_values":
-
     def post_note(self, json, **kwargs):
         """POST a new Note."""
         url = Session.__make_url("notes")
@@ -251,3 +244,18 @@ class Session:
         )
 
         return patch_resp
+
+    def post_webhook(self, url, model, events):
+        post_url = Session.__make_url("webhooks")
+        return self.__post_resource(
+            post_url,
+            json={
+                "data": {
+                    "fields": "id",
+                    "events": events,
+                    "model": model,
+                    "url": url,
+                },
+            },
+            fields="id,shared_secret,status",
+        )
