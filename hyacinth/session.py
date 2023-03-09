@@ -112,8 +112,7 @@ class Session:
     def get_calendars(self, **kwargs):
         """GET Calendars."""
         url = Session.__make_url("calendars")
-        return self.__post_resource(url, **kwargs)
-
+        return self.__get_paginated_resource(url, **kwargs)
 
     def post_calendar_entry(self, json, **kwargs):
         """POST a Calendar Entry."""
