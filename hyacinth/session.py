@@ -109,6 +109,12 @@ class Session:
                 # no paging meta, break the loop
                 next_url = None
 
+    def get_calendars(self, **kwargs):
+        """GET Calendars."""
+        url = Session.__make_url("calendars")
+        return self.__post_resource(url, **kwargs)
+
+
     def post_calendar_entry(self, json, **kwargs):
         """POST a Calendar Entry."""
         url = Session.__make_url("calendar_entries")
