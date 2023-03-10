@@ -76,19 +76,19 @@ class Session:
 
     @ratelimit
     def __get_resource(self, url, **kwargs):
-        return self.session.get(url, params=kwargs)
+        return self.session.get(url, **kwargs)
 
     @ratelimit
     def __post_resource(self, url, json, **kwargs):
-        return self.session.post(url, json=json, params=kwargs)
+        return self.session.post(url, json=json, **kwargs)
 
     @ratelimit
     def __patch_resource(self, url, json, **kwargs):
-        return self.session.patch(url, json=json, params=kwargs)
+        return self.session.patch(url, json=json, **kwargs)
 
     @ratelimit
     def __delete_resource(self, url, **kwargs):
-        return self.session.delete(url, params=kwargs)
+        return self.session.delete(url, **kwargs)
 
     def __get_paginated_resource(self, url, **kwargs):
         next_url = url
@@ -108,6 +108,11 @@ class Session:
             else:
                 # no paging meta, break the loop
                 next_url = None
+
+    def get_calendars(self, **kwargs):
+        """GET Calendars."""
+        url = Session.__make_url("calendars")
+        return self.__get_paginated_resource(url, **kwargs)
 
     def post_calendar_entry(self, json, **kwargs):
         """POST a Calendar Entry."""
