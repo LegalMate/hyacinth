@@ -262,5 +262,5 @@ class Session:
                     "url": url,
                 },
             },
-            fields="id,shared_secret,status",
+            params={"fields": "id,shared_secret,status"},
         )
