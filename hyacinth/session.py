@@ -119,6 +119,11 @@ class Session:
         url = Session.__make_url("calendar_entries")
         return self.__post_resource(url, json, **kwargs)
 
+    def patch_calendar_entry(self, id, json, **kwargs):
+        """PATCH a Calendar Entry."""
+        url = Session.__make_url(f"calendar_entries/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
     def get_calendar_entries(self, **kwargs):
         """GET a list of Calendar Entries."""
         url = Session.__make_url("calendar_entries")
