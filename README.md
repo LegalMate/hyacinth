@@ -61,5 +61,5 @@ low-key, and low-process for the time being. Don't be a stranger!
 Run the test suite via:
 
 ```sh
-poetry run test
+poetry run poe test
 ```
