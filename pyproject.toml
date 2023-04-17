@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "hyacinth"
-version = "0.1.0"
-description = ""
-authors = ["Anson MacKeracher <anson@legalmate.co>"]
+version = "0.2.0"
+description = "Python HTTP Client library for the Clio Manage API"
+authors = ["Anson MacKeracher <anson@legalmate.co>", "Nick Francis <nick@legalmate.co>"]
 license = "MIT"
 readme = "README.md"
 
