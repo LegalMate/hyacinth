@@ -189,6 +189,11 @@ class Session:
         url = Session.__make_url("notes")
         return self.__post_resource(url, json=json, **kwargs)
 
+    def post_task(self, json, **kwargs):
+        """POST a new Task."""
+        url = Session.__make_url("tasks")
+        return self.__post_resource(url, json=json, **kwargs)
+
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = Session.__make_url("matters")
