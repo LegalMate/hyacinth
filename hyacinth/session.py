@@ -6,6 +6,7 @@ import time
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
+CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
@@ -51,11 +52,21 @@ class Session:
     """
 
     def __init__(
-        self, token, client_id, client_secret, ratelimit=False, raise_for_status=False
+        self,
+        token,
+        client_id,
+        client_secret,
+        ratelimit=False,
+        raise_for_status=False,
+        update_token=lambda *args: None,  # default update_token does nothing
     ):
         """Initialize Session with optional ratelimits."""
         self.session = OAuth2Session(
-            client_id=client_id, client_secret=client_secret, token=token, token_endpoint=TODO
+            client_id=client_id,
+            client_secret=client_secret,
+            token=token,
+            token_endpoint=CLIO_API_TOKEN_ENDPOINT,
+            update_token=update_token,
         )
 
         self.ratelimit = ratelimit
