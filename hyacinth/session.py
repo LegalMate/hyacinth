@@ -6,7 +6,7 @@ import time
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
-CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"
+CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
