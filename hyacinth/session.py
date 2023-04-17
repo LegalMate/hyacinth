@@ -130,6 +130,11 @@ class Session:
         url = Session.__make_url("calendar_entries")
         return self.__post_resource(url, json, **kwargs)
 
+    def patch_calendar_entry(self, id, json, **kwargs):
+        """PATCH a Calendar Entry."""
+        url = Session.__make_url(f"calendar_entries/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
     def get_calendar_entries(self, **kwargs):
         """GET a list of Calendar Entries."""
         url = Session.__make_url("calendar_entries")
@@ -231,7 +236,7 @@ class Session:
         post_url = Session.__make_url("documents")
         clio_document = self.__post_resource(
             post_url,
-            fields="id,latest_document_version{uuid,put_url,put_headers}",
+            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
             json={
                 "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
             },
@@ -250,7 +255,7 @@ class Session:
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
-            fields="id,name,latest_document_version{fully_uploaded}",
+            params={"fields": "id,name,latest_document_version{fully_uploaded}"},
             json={
                 "data": {
                     "uuid": clio_document["data"]["latest_document_version"]["uuid"],
