@@ -285,3 +285,13 @@ class Session:
             },
             params={"fields": "id,shared_secret,status"},
         )
+
+    def get_document_templates(self, **kwargs):
+        """GET a list of Document Templates."""
+        url = Session.__make_url("document_templates")
+        return self.__get_paginated_resource(url, **kwargs)
+
+    def post_document_automation(self, json, **kwargs):
+        """POST a new Document Automation."""
+        url = Session.__make_url("document_automations")
+        return self.__post_resource(url, json=json, **kwargs)
