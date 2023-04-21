@@ -295,3 +295,48 @@ class Session:
         """POST a new Document Automation."""
         url = Session.__make_url("document_automations")
         return self.__post_resource(url, json=json, **kwargs)
+
+    def post_matter(self, json, **kwargs):
+        """POST a new Matter."""
+        url = Session.__make_url("matters")
+        return self.__post_resource(url, json=json, **kwargs)
+
+    def get_activity(self, id, **kwargs):
+        """GET a single Activity with provided ID."""
+        url = Session.__make_url(f"activities/{id}")
+        return self.__get_resource(url, **kwargs)
+
+    def get_activities(self, **kwargs):
+        """GET a list of Activities."""
+        url = Session.__make_url("activities")
+        return self.__get_paginated_resource(url, **kwargs)
+
+    def post_activity(self, json, **kwargs):
+        """POST a new Activity."""
+        url = Session.__make_url("activities")
+        return self.__post_resource(url, json=json, **kwargs)
+
+    def patch_activity(self, id, json, **kwargs):
+        """PATCH an existing Activity with provided ID."""
+        url = Session.__make_url(f"activities/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
+    def delete_activity(self, id, **kwargs):
+        """DELETE an existing Activity with provided ID."""
+        url = Session.__make_url(f"activities/{id}")
+        return self.__delete_resource(url, **kwargs)
+
+    def get_activity_description(self, id, **kwargs):
+        """GET a single Activity Description with provided ID."""
+        url = Session.__make_url(f"activity_descriptions/{id}")
+        return self.__get_resource(url, **kwargs)
+
+    def get_activity_descriptions(self, **kwargs):
+        """GET a list of Activity Descriptions."""
+        url = Session.__make_url("activity_descriptions")
+        return self.__get_paginated_resource(url, **kwargs)
+
+    def post_activity_description(self, json, **kwargs):
+        """POST a new Activity Description."""
+        url = Session.__make_url("activity_descriptions")
+        return self.__post_resource(url, json=json, **kwargs)
