@@ -84,4 +84,4 @@ class AsyncSession:
             },
         )
 
-        return patch_resp
+        return patch_resp.json()
