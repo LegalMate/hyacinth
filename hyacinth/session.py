@@ -301,7 +301,7 @@ class Session:
                 parts.append((start_offset, end_offset, part))
                 progress_update()
             content_md5 = hashlib.md5(part).digest()
-            content_md5_str = base64.b64encode(content_md5).decode('utf-8')  # nosec
+            content_md5_str = base64.b64encode(content_md5).decode('utf-8')  #nosec
 
         multiparts = []
         for idx, part in enumerate(parts, start=1):
