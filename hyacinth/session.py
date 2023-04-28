@@ -300,8 +300,8 @@ class Session:
                 headers_map[header["name"]] = header["value"]
 
             part_number = part["part_number"]
-            data_part = data_parts[part_number]
-            requests.put(put_url, headers=headers_map, data=data_part)
+            data_part = parts[part_number]
+            requests.put(put_url, headers=headers_map, data=data_part, timeout=5)
             progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
