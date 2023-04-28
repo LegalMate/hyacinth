@@ -271,7 +271,52 @@ class Session:
 
         return patch_resp
 
+    def upload_multipart_document(
+        self, name, parent_id, parent_type, document_parts, data_parts, progress_update
+    ):
+        """Upload a new Document to Clio via the multipart upload feature."""
+        post_url = Session.__make_url("documents")
+        clio_document = self.__post_resource(
+            post_url,
+            params={
+                "fields": "id,latest_document_version{uuid,put_headers,multiparts}"
+            },
+            json={
+                "data": {
+                    "name": name,
+                    "parent": {"id": parent_id, "type": parent_type},
+                    "multiparts": document_parts,
+                }
+            },
+        )
+
+        for part in clio_document["data"]["latest_document_version"]["mutliparts"]:
+            put_url = part["put_url"]
+            put_headers = part["put_headers"]
+            headers_map = {}
+            for header in put_headers:
+                headers_map[header["name"]] = header["value"]
+
+            part_number = part["part_number"]
+            data_part = data_parts[part_number]
+            requests.put(put_url, headers=headers_map, data=data_part)
+            progress_update()
+
+        patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
+        patch_resp = self.session.patch(
+            patch_url,
+            params={"fields": "id,name,latest_document_version{fully_uploaded}"},
+            json={
+                "data": {
+                    "uuid": clio_document["data"]["latest_document_version"]["uuid"],
+                    "fully_uploaded": True,
+                }
+            },
+        )
+        return patch_resp
+
     def post_webhook(self, url, model, events):
+        """Post a Webhook to Clio."""
         post_url = Session.__make_url("webhooks")
         return self.__post_resource(
             post_url,
