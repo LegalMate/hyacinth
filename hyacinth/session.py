@@ -335,7 +335,7 @@ class Session:
                 headers_map[header["name"]] = header["value"]
 
             part_number = part["part_number"]
-            data_part = parts[part_number][2]  # 'parts' is a list of tuples
+            data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
             requests.put(put_url, headers=headers_map, data=data_part, timeout=300)
             progress_update()
 
