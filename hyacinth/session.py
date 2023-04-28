@@ -336,7 +336,8 @@ class Session:
 
             part_number = part["part_number"]
             data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
-            requests.put(put_url, headers=headers_map, data=data_part, timeout=300)
+            res = requests.put(put_url, headers=headers_map, data=data_part, timeout=300)
+            log.info(res)
             progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
