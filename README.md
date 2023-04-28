@@ -1,6 +1,8 @@
 # hyacinth
 Python HTTP Client library for the Clio Manage API
 
+[![Basic Checks](https://github.com/LegalMate/hyacinth/actions/workflows/basic.yml/badge.svg)](https://github.com/LegalMate/hyacinth/actions/workflows/basic.yml)
+
 ## Features
 
 - OAuth2 token support
