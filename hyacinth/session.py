@@ -290,6 +290,8 @@ class Session:
             },
         )
 
+        log.info(clio_document)
+
         for part in clio_document["data"]["latest_document_version"]["mutliparts"]:
             put_url = part["put_url"]
             put_headers = part["put_headers"]
@@ -303,7 +305,7 @@ class Session:
             progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
-        patch_resp = self.session.patch(
+        patch_resp = self.__patch_resource(
             patch_url,
             params={"fields": "id,name,latest_document_version{fully_uploaded}"},
             json={
