@@ -300,15 +300,15 @@ class Session:
                 part = f.read(end_offset - start_offset)
                 parts.append((start_offset, end_offset, part))
                 progress_update()
-            content_md5 = hashlib.md5(part).digest()  # nosec
-            content_md5_str = base64.b64encode(content_md5).decode('utf-8')
+            # content_md5 = hashlib.md5(part).digest()  # nosec
+            # content_md5_str = base64.b64encode(content_md5).decode('utf-8')
 
         multiparts = []
         for idx, part in enumerate(parts, start=1):
             multiparts.append({
                 "part_number": idx,
                 "content_length": len(part[2]),
-                "content_md5": content_md5_str,
+                # "content_md5": content_md5_str,
             })
 
         post_url = Session.__make_url("documents")
@@ -337,7 +337,8 @@ class Session:
             part_number = part["part_number"]
             data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
             res = requests.put(put_url, headers=headers_map, data=data_part, timeout=300)
-            log.info(res)
+            print(res)
+            print(res.content)
             progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
