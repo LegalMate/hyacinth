@@ -6,6 +6,7 @@ import time
 import hashlib
 import os
 import base64
+import aiohttp
 
 from authlib.integrations.requests_client import OAuth2Session
 
@@ -243,16 +244,6 @@ class Session:
 
     def upload_document(self, name, parent_id, parent_type, document, progress_update=lambda *args: None):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
-        file_size = os.path.getsize(document)
-        if file_size > PART_SIZE:
-            return self.upload_multipart_document(
-                name,
-                parent_id,
-                parent_type,
-                document,
-                progress_update,
-            )
-
         with open(document, "rb") as f:
             post_url = Session.__make_url("documents")
             clio_document = self.__post_resource(
@@ -287,10 +278,10 @@ class Session:
 
             return patch_resp
 
-    def upload_multipart_document(
+    async def upload_multipart_document(
             self, name, parent_id, parent_type, document, progress_update
     ):
-        """Upload a new Document to Clio via the multipart upload feature."""
+        """Async fn to upload a new Document to Clio via the multipart upload feature."""
         with open(document, "rb") as f:
             file_size = os.path.getsize(document)
             parts = []
@@ -336,10 +327,10 @@ class Session:
 
             part_number = part["part_number"]
             data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
-            res = requests.put(put_url, headers=headers_map, data=data_part, timeout=300)
-            print(res)
-            print(res.content)
-            progress_update()
+            async with aiohttp.ClientSession() as session:
+                async with session.put(put_url, headers=headers_map, data=data_part, timeout=300) as response:
+                    print(response)
+                    progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
