@@ -329,7 +329,7 @@ class Session:
             data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
             async with aiohttp.ClientSession() as session:
                 async with session.put(put_url, headers=headers_map, data=data_part, timeout=300) as response:
-                    print(response)
+                    log.info(response)
                     progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
