@@ -3,6 +3,11 @@ import logging
 import math
 import requests
 import time
+import hashlib
+import os
+import base64
+import aiohttp
+
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
@@ -10,6 +15,7 @@ CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
+PART_SIZE = 104857600  # 100 megabytes in bytes
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -48,7 +54,7 @@ class Session:
     WARNING: enabling `ratelimit` will block the process synchronously
     when API rate limits are hit. Support for async hyacinth is coming
     soon.
-
+:
     """
 
     def __init__(
@@ -236,26 +242,95 @@ class Session:
         url = Session.__make_url(f"folders/{id}")
         return self.__delete_resource(url, **kwargs)
 
-    def upload_document(self, name, parent_id, parent_type, document):
+    def upload_document(self, name, parent_id, parent_type, document, progress_update=lambda *args: None):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
+        with open(document, "rb") as f:
+            post_url = Session.__make_url("documents")
+            clio_document = self.__post_resource(
+                post_url,
+                params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
+                json={
+                    "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+                },
+            )
+
+            put_url = clio_document["data"]["latest_document_version"]["put_url"]
+            put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
+
+            headers_map = {}
+            for header in put_headers:
+                headers_map[header["name"]] = header["value"]
+
+            # We actually DON'T want to use the authenticated client here
+            requests.put(put_url, headers=headers_map, data=f, timeout=5)
+
+            patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
+            patch_resp = self.__patch_resource(
+                patch_url,
+                params={"fields": "id,name,latest_document_version{fully_uploaded}"},
+                json={
+                    "data": {
+                        "uuid": clio_document["data"]["latest_document_version"]["uuid"],
+                        "fully_uploaded": True,
+                    }
+                },
+            )
+
+            return patch_resp
+
+    async def upload_multipart_document(
+            self, name, parent_id, parent_type, document, progress_update
+    ):
+        """Async fn to upload a new Document to Clio via the multipart upload feature."""
+        with open(document, "rb") as f:
+            file_size = os.path.getsize(document)
+            parts = []
+            for i in range(0, file_size, PART_SIZE):
+                start_offset = i
+                end_offset = min(file_size, i + PART_SIZE)
+                part = f.read(end_offset - start_offset)
+                parts.append((start_offset, end_offset, part))
+                progress_update()
+            # content_md5 = hashlib.md5(part).digest()  # nosec
+            # content_md5_str = base64.b64encode(content_md5).decode('utf-8')
+
+        multiparts = []
+        for idx, part in enumerate(parts, start=1):
+            multiparts.append({
+                "part_number": idx,
+                "content_length": len(part[2]),
+                # "content_md5": content_md5_str,
+            })
+
         post_url = Session.__make_url("documents")
+
         clio_document = self.__post_resource(
             post_url,
-            params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
+            params={
+                "fields": "id,latest_document_version{uuid,put_headers,multiparts}"
+            },
             json={
-                "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+                "data": {
+                    "name": name,
+                    "parent": {"id": parent_id, "type": parent_type},
+                    "multiparts": multiparts,
+                }
             },
         )
 
-        put_url = clio_document["data"]["latest_document_version"]["put_url"]
-        put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
+        for part in clio_document["data"]["latest_document_version"]["multiparts"]:
+            put_url = part["put_url"]
+            put_headers = part["put_headers"]
+            headers_map = {}
+            for header in put_headers:
+                headers_map[header["name"]] = header["value"]
 
-        headers_map = {}
-        for header in put_headers:
-            headers_map[header["name"]] = header["value"]
-
-        # We actually DON'T want to use the authenticated client here
-        requests.put(put_url, headers=headers_map, data=document)
+            part_number = part["part_number"]
+            data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
+            async with aiohttp.ClientSession() as session:
+                response = await session.put(put_url, headers=headers_map, data=data_part, timeout=300)
+                log.info(response)
+                progress_update()
 
         patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
@@ -268,10 +343,10 @@ class Session:
                 }
             },
         )
-
         return patch_resp
 
     def post_webhook(self, url, model, events):
+        """Post a Webhook to Clio."""
         post_url = Session.__make_url("webhooks")
         return self.__post_resource(
             post_url,
