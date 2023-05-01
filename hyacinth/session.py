@@ -288,7 +288,7 @@ class Session:
             return patch_resp
 
     async def upload_multipart_document(
-            self, name, parent_id, parent_type, document, progress_update
+        self, name, parent_id, parent_type, document, progress_update
     ):
         """Async fn to upload a new Document to Clio via the multipart upload feature."""
         with open(document, "rb") as f:
@@ -305,11 +305,13 @@ class Session:
 
         multiparts = []
         for idx, part in enumerate(parts, start=1):
-            multiparts.append({
-                "part_number": idx,
-                "content_length": len(part[2]),
-                # "content_md5": content_md5_str,
-            })
+            multiparts.append(
+                {
+                    "part_number": idx,
+                    "content_length": len(part[2]),
+                    # "content_md5": content_md5_str,
+                }
+            )
 
         post_url = Session.__make_url("documents")
 
@@ -337,7 +339,9 @@ class Session:
             part_number = part["part_number"]
             data_part = parts[part_number - 1][2]  # 'parts' is a list of tuples
             async with aiohttp.ClientSession() as session:
-                response = await session.put(put_url, headers=headers_map, data=data_part, timeout=300)
+                response = await session.put(
+                    put_url, headers=headers_map, data=data_part, timeout=300
+                )
                 log.info(response)
                 progress_update()
 
