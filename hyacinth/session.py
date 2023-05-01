@@ -51,10 +51,10 @@ def ratelimit(f):
 class Session:
     """Session class for interacting with Clio Manage API.
 
-    WARNING: enabling `ratelimit` will block the process synchronously
-    when API rate limits are hit. Support for async hyacinth is coming
-    soon.
-:
+        WARNING: enabling `ratelimit` will block the process synchronously
+        when API rate limits are hit. Support for async hyacinth is coming
+        soon.
+    :
     """
 
     def __init__(
@@ -242,20 +242,29 @@ class Session:
         url = Session.__make_url(f"folders/{id}")
         return self.__delete_resource(url, **kwargs)
 
-    def upload_document(self, name, parent_id, parent_type, document, progress_update=lambda *args: None):
+    def upload_document(
+        self, name, parent_id, parent_type, document, progress_update=lambda *args: None
+    ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
             post_url = Session.__make_url("documents")
             clio_document = self.__post_resource(
                 post_url,
-                params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
+                params={
+                    "fields": "id,latest_document_version{uuid,put_url,put_headers}"
+                },
                 json={
-                    "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+                    "data": {
+                        "name": name,
+                        "parent": {"id": parent_id, "type": parent_type},
+                    }
                 },
             )
 
             put_url = clio_document["data"]["latest_document_version"]["put_url"]
-            put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
+            put_headers = clio_document["data"]["latest_document_version"][
+                "put_headers"
+            ]
 
             headers_map = {}
             for header in put_headers:
