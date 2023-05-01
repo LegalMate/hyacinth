@@ -279,7 +279,61 @@ class Session:
                 params={"fields": "id,name,latest_document_version{fully_uploaded}"},
                 json={
                     "data": {
-                        "uuid": clio_document["data"]["latest_document_version"]["uuid"],
+                        "uuid": clio_document["data"]["latest_document_version"][
+                            "uuid"
+                        ],
+                        "fully_uploaded": True,
+                    }
+                },
+            )
+
+            return patch_resp
+
+    async def upload_document_async(
+        self, name, parent_id, parent_type, document, progress_update=lambda *args: None
+    ):
+        """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
+        with open(document, "rb") as f:
+            post_url = Session.__make_url("documents")
+            clio_document = self.__post_resource(
+                post_url,
+                params={
+                    "fields": "id,latest_document_version{uuid,put_url,put_headers}"
+                },
+                json={
+                    "data": {
+                        "name": name,
+                        "parent": {"id": parent_id, "type": parent_type},
+                    }
+                },
+            )
+
+            put_url = clio_document["data"]["latest_document_version"]["put_url"]
+            put_headers = clio_document["data"]["latest_document_version"][
+                "put_headers"
+            ]
+
+            headers_map = {}
+            for header in put_headers:
+                headers_map[header["name"]] = header["value"]
+
+            # We actually DON'T want to use the authenticated client here
+            async with aiohttp.ClientSession() as session:
+                response = await session.put(
+                    put_url, headers=headers_map, data=f, timeout=300
+                )
+                log.info(response)
+                progress_update()
+
+            patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
+            patch_resp = self.__patch_resource(
+                patch_url,
+                params={"fields": "id,name,latest_document_version{fully_uploaded}"},
+                json={
+                    "data": {
+                        "uuid": clio_document["data"]["latest_document_version"][
+                            "uuid"
+                        ],
                         "fully_uploaded": True,
                     }
                 },
