@@ -3,6 +3,7 @@ import logging
 import functools
 import asyncio
 import aiohttp
+import aiofiles
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
@@ -114,7 +115,7 @@ class AsyncSession:
         for header in put_headers:
             headers_map[header["name"]] = header["value"]
 
-        with open(document, "rb") as f:
+        async with aiofiles.open(document, "rb") as f:
             # We don't want the authenticated session here, authn is
             # handled by the put_headers from Clio.
             async with aiohttp.ClientSession() as session:
