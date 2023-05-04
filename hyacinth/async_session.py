@@ -18,7 +18,7 @@ log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
-    """Rate limit a function with Clio rate limites.
+    """Rate limit a function with Clio rate limits.
 
     See: https://docs.developers.clio.com/api-docs/rate-limits/
     """
