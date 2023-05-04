@@ -4,6 +4,7 @@ import functools
 import asyncio
 import aiohttp
 import aiofiles
+import aiofiles.os
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
@@ -23,6 +24,7 @@ def ratelimit(f):
 
     See: https://docs.developers.clio.com/api-docs/rate-limits/
     """
+
     @functools.wraps(f)
     async def wrapper(self, *args, **kwargs):
         resp = await f(self, *args, **kwargs)
@@ -90,7 +92,9 @@ class AsyncSession:
         url = f"{CLIO_API_BASE_URL_US}/users/who_am_i"
         return await self.__get(url)
 
-    async def upload_document(self, name, parent_id, parent_type, document, params=None, **kwargs):
+    async def upload_document(
+        self, name, parent_id, parent_type, document, params=None, **kwargs
+    ):
         """Upload a new Document to Clio.
 
         Operations:
@@ -111,7 +115,7 @@ class AsyncSession:
         put_url = clio_document["data"]["latest_document_version"]["put_url"]
         put_headers = clio_document["data"]["latest_document_version"]["put_headers"]
 
-        headers_map = {}
+        headers_map = {"Content-Length": str(await aiofiles.os.path.getsize(document))}
         for header in put_headers:
             headers_map[header["name"]] = header["value"]
 
@@ -119,7 +123,7 @@ class AsyncSession:
             # We don't want the authenticated session here, authn is
             # handled by the put_headers from Clio.
             async with aiohttp.ClientSession() as session:
-                print(await session.put(put_url, headers=headers_map, data=f, timeout=300))
+                await session.put(put_url, headers=headers_map, data=f, timeout=300)
 
         patch_url = f"{CLIO_API_BASE_URL_US}/documents/{clio_document['data']['id']}"
         doc_params = {"fields": "id,name,latest_document_version{fully_uploaded}"}
