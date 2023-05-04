@@ -89,7 +89,7 @@ class AsyncSession:
         url = f"{CLIO_API_BASE_URL_US}/users/who_am_i"
         return await self.__get(url)
 
-    async def upload_document(self, name, parent_id, parent_type, document):
+    async def upload_document(self, name, parent_id, parent_type, document, params=None, **kwargs):
         """Upload a new Document to Clio.
 
         Operations:
@@ -121,9 +121,16 @@ class AsyncSession:
                 await session.put(put_url, headers=headers_map, data=f, timeout=300)
 
         patch_url = f"{CLIO_API_BASE_URL_US}/documents/{clio_document['data']['id']}"
+        doc_params = {"fields": "id,name,latest_document_version{fully_uploaded}"}
+        if params.get("fields"):
+            doc_params["fields"] = doc_params["fields"] + "," + params.get("fields")
+            del params["fields"]
+        if params:
+            doc_params = doc_params | params  # this merges the dicts
+
         patch_resp = await self.__patch(
             patch_url,
-            params={"fields": "id,name,latest_document_version{fully_uploaded}"},
+            params=doc_params,
             json={
                 "data": {
                     "uuid": clio_document["data"]["latest_document_version"]["uuid"],
