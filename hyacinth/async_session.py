@@ -1,6 +1,5 @@
 """async_session.py -- Async Session for Clio API."""
 import logging
-import httpx
 import functools
 import asyncio
 import aiohttp
