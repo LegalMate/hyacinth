@@ -119,7 +119,7 @@ class AsyncSession:
             # We don't want the authenticated session here, authn is
             # handled by the put_headers from Clio.
             async with aiohttp.ClientSession() as session:
-                await session.put(put_url, headers=headers_map, data=f, timeout=300)
+                print(await session.put(put_url, headers=headers_map, data=f, timeout=300))
 
         patch_url = f"{CLIO_API_BASE_URL_US}/documents/{clio_document['data']['id']}"
         doc_params = {"fields": "id,name,latest_document_version{fully_uploaded}"}
