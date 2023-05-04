@@ -122,7 +122,7 @@ class AsyncSession:
 
         patch_url = f"{CLIO_API_BASE_URL_US}/documents/{clio_document['data']['id']}"
         doc_params = {"fields": "id,name,latest_document_version{fully_uploaded}"}
-        if params.get("fields"):
+        if params and params.get("fields"):
             doc_params["fields"] = doc_params["fields"] + "," + params.get("fields")
             del params["fields"]
         if params:
