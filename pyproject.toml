@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "hyacinth"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python HTTP Client library for the Clio Manage API"
 authors = ["Anson MacKeracher <anson@legalmate.co>", "Nick Francis <nick@legalmate.co>"]
 license = "MIT"
@@ -13,6 +13,8 @@ requests = "^2.28.2"
 poethepoet = "^0.19.0"
 pytest = "^7.3.1"
 aiohttp = {extras = ["speedups"], version = "^3.8.4"}
+httpx = "^0.24.0"
+aiofiles = "^23.1.0"
 
 [tool.poetry.group.dev.dependencies]
 ipdb = "^0.13.11"
