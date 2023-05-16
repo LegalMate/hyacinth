@@ -271,7 +271,7 @@ class Session:
                 headers_map[header["name"]] = header["value"]
 
             # We actually DON'T want to use the authenticated client here
-            requests.put(put_url, headers=headers_map, data=f, timeout=5)
+            requests.put(put_url, headers=headers_map, data=f, timeout=600)
 
             patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
             patch_resp = self.__patch_resource(
