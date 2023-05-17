@@ -415,7 +415,7 @@ class Session:
     def post_webhook(self, url, model, events, params=None):
         """Post a Webhook to Clio."""
         post_url = Session.__make_url("webhooks")
-        webhook_params = {"fields": "id,shared_secret,status"}
+        webhook_params = {"fields": "id"}
         if params and params.get("fields"):
             webhook_params["fields"] = (
                 webhook_params["fields"] + "," + params.get("fields")
