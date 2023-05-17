@@ -424,6 +424,8 @@ class Session:
         if params:
             webhook_params = webhook_params | params  # this merges the dicts
 
+        print(webhook_params)
+
         return self.__post_resource(
             post_url,
             json={
