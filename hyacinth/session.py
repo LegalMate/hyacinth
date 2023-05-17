@@ -412,9 +412,18 @@ class Session:
         )
         return patch_resp
 
-    def post_webhook(self, url, model, events):
+    def post_webhook(self, url, model, events, params=None):
         """Post a Webhook to Clio."""
         post_url = Session.__make_url("webhooks")
+        webhook_params = {"fields": "id,shared_secret,status"}
+        if params and params.get("fields"):
+            webhook_params["fields"] = (
+                webhook_params["fields"] + "," + params.get("fields")
+            )
+            del params["fields"]
+        if params:
+            webhook_params = webhook_params | params  # this merges the dicts
+
         return self.__post_resource(
             post_url,
             json={
@@ -425,7 +434,7 @@ class Session:
                     "url": url,
                 },
             },
-            params={"fields": "id,shared_secret,status"},
+            params=webhook_params,
         )
 
     def get_document_templates(self, **kwargs):
