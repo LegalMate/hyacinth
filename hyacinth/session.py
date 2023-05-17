@@ -412,15 +412,17 @@ class Session:
         )
         return patch_resp
 
-    def post_webhook(self, url, model, events, params=None):
+    def post_webhook(self, url, model, events, fields=None):
         """Post a Webhook to Clio."""
         post_url = Session.__make_url("webhooks")
-
+        model_fields = "id"
+        if fields:
+            model_fields += "," + fields
         return self.__post_resource(
             post_url,
             json={
                 "data": {
-                    "fields": "id,custom_field_values",
+                    "fields": model_fields,
                     "events": events,
                     "model": model,
                     "url": url,
