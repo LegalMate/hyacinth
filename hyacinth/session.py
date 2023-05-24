@@ -191,6 +191,11 @@ class Session:
         url = Session.__make_url("documents")
         return self.__get_paginated_resource(url, **kwargs)
 
+    def download_document(self, id, **kwargs):
+        """Download a Document with provided ID."""
+        url = Session.__make_url(f"documents/{id}/download")
+        return self.__get_resource(url, **kwargs)
+
     def get_matter(self, id, **kwargs):
         """GET a Matter with provided ID."""
         url = Session.__make_url(f"matters/{id}")
