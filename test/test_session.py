@@ -175,3 +175,10 @@ class TestSession(unittest.TestCase):
         self.session._Session__get_paginated_resource.assert_called_with(
             "https://app.clio.com/api/v4/matters.json", fields=test_fields
         )
+
+    def test_download_document(self):
+        self.session._Session__get_resource = MagicMock()
+        u = self.session.download_document(1)
+        self.session._Session__get_resource.assert_called_with(
+            "https://app.clio.com/api/v4/documents/1/download.json"
+        )
