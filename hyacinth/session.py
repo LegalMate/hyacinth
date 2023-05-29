@@ -421,7 +421,7 @@ class Session:
         )
         return patch_resp
 
-    def post_webhook(self, url, model, events, fields=None):
+    def post_webhook(self, url, model, events, fields=None, expires_at=None):
         """Post a Webhook to Clio."""
         post_url = Session.__make_url("webhooks")
         model_fields = "id"
@@ -435,6 +435,7 @@ class Session:
                     "events": events,
                     "model": model,
                     "url": url,
+                    "expires_at": expires_at,
                 },
             },
             params={"fields": "id,shared_secret,status"},
