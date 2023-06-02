@@ -199,6 +199,11 @@ class Session:
         """Download a Document with provided ID."""
         url = Session.__make_url(f"documents/{id}/download")
         return self.__get_resource(url, **kwargs)
+    
+    def delete_document(self, id, **kwargs):
+        """DELETE an existing DOCUMENT with provided ID."""
+        url = Session.__make_url(f"documents/{id}")
+        return self.__delete_resource(url, **kwargs)
 
     def get_matter(self, id, **kwargs):
         """GET a Matter with provided ID."""
