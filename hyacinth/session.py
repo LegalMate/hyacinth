@@ -201,7 +201,7 @@ class Session:
         return self.__get_resource(url, **kwargs)
     
     def delete_document(self, id, **kwargs):
-        """DELETE an existing DOCUMENT with provided ID."""
+        """DELETE an existing Document with provided ID."""
         url = Session.__make_url(f"documents/{id}")
         return self.__delete_resource(url, **kwargs)
 
