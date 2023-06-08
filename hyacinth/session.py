@@ -504,7 +504,6 @@ class Session:
         """GET a list of Bills."""
         url = Session.__make_url("bills")
         return self.__get_paginated_resource(url, **kwargs)
-     
     
     def get_bill(self, id, **kwargs):
         """GET a single Bill with provided ID."""
