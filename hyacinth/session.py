@@ -115,7 +115,6 @@ class Session:
         next_url = url
         while next_url:
             resp = self.__get_resource(next_url, **kwargs)
-
             for datum in resp["data"]:
                 yield datum
 
@@ -500,3 +499,34 @@ class Session:
         """POST a new Activity Description."""
         url = Session.__make_url("activity_descriptions")
         return self.__post_resource(url, json=json, **kwargs)
+
+    def get_bills(self, **kwargs):
+        """GET a list of Bills."""
+        url = Session.__make_url("bills")
+        return self.__get_paginated_resource(url, **kwargs)
+     
+    
+    def get_bill(self, id, **kwargs):
+        """GET a single Bill with provided ID."""
+        url = Session.__make_url(f"bills/{id}")
+        return self.__get_resource(url, **kwargs)
+    
+    def patch_bill(self, id, json, **kwargs):
+        """PATCH an existing Bill with provided ID."""
+        url = Session.__make_url(f"bills/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+    
+    def delete_bill(self, id, **kwargs):
+        """DELETE an existing Bill with provided ID."""
+        url = Session.__make_url(f"bills/{id}")
+        return self.__delete_resource(url, **kwargs)
+    
+    def line_items(self, **kwargs):
+        """GET data for all line items."""
+        url = Session.__make_url(f"line_items")
+        return self.__get_resource(url, **kwargs)
+
+    def patch_lineItem(self, id, json, **kwargs):
+        """PATCH an existing line item with provided ID of line item."""
+        url = Session.__make_url(f"line_items/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
