@@ -198,7 +198,7 @@ class Session:
         """Download a Document with provided ID."""
         url = Session.__make_url(f"documents/{id}/download")
         return self.__get_resource(url, **kwargs)
-    
+
     def delete_document(self, id, **kwargs):
         """DELETE an existing Document with provided ID."""
         url = Session.__make_url(f"documents/{id}")
@@ -504,28 +504,53 @@ class Session:
         """GET a list of Bills."""
         url = Session.__make_url("bills")
         return self.__get_paginated_resource(url, **kwargs)
-    
+
     def get_bill(self, id, **kwargs):
         """GET a single Bill with provided ID."""
         url = Session.__make_url(f"bills/{id}")
         return self.__get_resource(url, **kwargs)
-    
+
     def patch_bill(self, id, json, **kwargs):
         """PATCH an existing Bill with provided ID."""
         url = Session.__make_url(f"bills/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
-    
+
     def delete_bill(self, id, **kwargs):
         """DELETE an existing Bill with provided ID."""
         url = Session.__make_url(f"bills/{id}")
         return self.__delete_resource(url, **kwargs)
-    
-    def line_items(self, **kwargs):
-        """GET data for all line items."""
-        url = Session.__make_url(f"line_items")
-        return self.__get_resource(url, **kwargs)
 
-    def patch_lineItem(self, id, json, **kwargs):
+    def get_line_items(self, **kwargs):
+        """GET a list of Line Items."""
+        url = Session.__make_url("line_items")
+        return self.__get_paginated_resource(url, **kwargs)
+
+    def patch_line_item(self, id, json, **kwargs):
         """PATCH an existing line item with provided ID of line item."""
         url = Session.__make_url(f"line_items/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
+
+    def get_custom_actions(self, **kwargs):
+        """GET a list of Custom Actions."""
+        url = Session.__make_url("custom_actions")
+        return self.__get_paginated_resource(url, **kwargs)
+
+    def get_custom_action(self, id, **kwargs):
+        """GET a single Custom Action with provided ID."""
+        url = Session.__make_url(f"custom_actions/{id}")
+        return self.__get_resource(url, **kwargs)
+
+    def post_custom_action(self, json, **kwargs):
+        """POST a new Custom Action."""
+        url = Session.__make_url("custom_actions")
+        return self.__post_resource(url, json=json, **kwargs)
+
+    def patch_custom_action(self, id, json, **kwargs):
+        """PATCH an existing Custom Action with provided ID."""
+        url = Session.__make_url(f"custom_actions/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
+    def delete_custom_action(self, id, **kwargs):
+        """DELETE an existing Custom Action with provided ID."""
+        url = Session.__make_url(f"custom_actions/{id}")
+        return self.__delete_resource(url, **kwargs)
