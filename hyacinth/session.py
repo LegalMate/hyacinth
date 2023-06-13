@@ -564,6 +564,5 @@ class Session:
         kwargs["params"] = params
         return self.__get_resource(
             url,
-            params=params,
             **kwargs,
         )
