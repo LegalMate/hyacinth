@@ -67,3 +67,4 @@ target/
 
 .envrc
 .vscode/
+.DS_Store
