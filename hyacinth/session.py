@@ -10,6 +10,7 @@ import aiohttp
 
 from authlib.integrations.requests_client import OAuth2Session
 
+CLIO_BASE_URL_US = "https://app.clio.com"
 CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
 CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
@@ -554,3 +555,14 @@ class Session:
         """DELETE an existing Custom Action with provided ID."""
         url = Session.__make_url(f"custom_actions/{id}")
         return self.__delete_resource(url, **kwargs)
+
+    def verify_custom_action(self, subject_url, custom_action_nonce, **kwargs):
+        """Verify a Custom Action."""
+        url = CLIO_BASE_URL_US + subject_url
+        params = kwargs.get("params", {})
+        params.update({"custom_action_nonce": custom_action_nonce})
+        kwargs["params"] = params
+        return self.__get_resource(
+            url,
+            **kwargs,
+        )
