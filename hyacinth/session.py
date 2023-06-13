@@ -559,10 +559,11 @@ class Session:
     def verify_custom_action(self, subject_url, custom_action_nonce, **kwargs):
         """Verify a Custom Action."""
         url = CLIO_BASE_URL_US + subject_url
+        params = kwargs.get("params")
+        params.update({"custom_action_nonce": custom_action_nonce})
+        kwargs["params"] = params
         return self.__get_resource(
             url,
-            params={
-                "custom_action_nonce": custom_action_nonce,
-            },
+            params=params,
             **kwargs,
         )
