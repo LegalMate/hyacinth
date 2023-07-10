@@ -187,5 +187,5 @@ class TestSession(unittest.TestCase):
         self.session._Session__delete_resource = MagicMock()
         _ = self.session.delete_webhook(1)
         self.session._Session__delete_resource.assert_called_with(
-            "https://app.clio.com/api/v4/webhooks/1"
+            "https://app.clio.com/api/v4/webhooks/1.json"
         )
