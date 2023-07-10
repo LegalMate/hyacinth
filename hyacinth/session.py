@@ -446,6 +446,11 @@ class Session:
             params={"fields": "id,shared_secret,status"},
         )
 
+    def delete_webhook(self, id, **kwargs):
+        """DELETE an existing Webhook with provided ID."""
+        url = Session.__make_url(f"webhooks/{id}")
+        return self.__delete_resource(url, **kwargs)
+
     def get_document_templates(self, **kwargs):
         """GET a list of Document Templates."""
         url = Session.__make_url("document_templates")
