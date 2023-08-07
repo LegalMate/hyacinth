@@ -446,6 +446,11 @@ class Session:
             params={"fields": "id,shared_secret,status"},
         )
 
+    def update_webhook(self, id, json, **kwargs):
+        """PATCH an existing Webhook with provided ID."""
+        url = Session.__make_url(f"webhooks/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
     def delete_webhook(self, id, **kwargs):
         """DELETE an existing Webhook with provided ID."""
         url = Session.__make_url(f"webhooks/{id}")
