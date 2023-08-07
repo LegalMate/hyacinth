@@ -189,3 +189,15 @@ class TestSession(unittest.TestCase):
         self.session._Session__delete_resource.assert_called_with(
             "https://app.clio.com/api/v4/webhooks/1.json"
         )
+
+    def test_update_webhook(self):
+        self.session._Session__patch_resource = MagicMock()
+        json = {
+            "data": {
+                "fields": "id,client{id,first_name,last_name},",
+            }
+        }
+        _ = self.session.update_webhook(1, json=json)
+        self.session._Session__patch_resource.assert_called_with(
+            "https://app.clio.com/api/v4/webhooks/1.json", json=json
+        )
