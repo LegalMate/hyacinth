@@ -464,7 +464,7 @@ class Session:
     def get_webhooks(self, **kwargs):
         """GET a list of all webhooks from Clio."""
         url = Session.__make_url("webhooks")
-        return self.__get_resource(url, **kwargs)
+        return self.__get_paginated_resource(url, **kwargs)
 
     def get_document_templates(self, **kwargs):
         """GET a list of Document Templates."""
