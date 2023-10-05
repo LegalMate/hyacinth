@@ -456,6 +456,16 @@ class Session:
         url = Session.__make_url(f"webhooks/{id}")
         return self.__delete_resource(url, **kwargs)
 
+    def get_webhook(self, id, **kwargs):
+        """GET a single Webhook with provided ID."""
+        url = Session.__make_url(f"webhooks/{id}")
+        return self.__get_resource(url, **kwargs)
+
+    def get_webhooks(self, **kwargs):
+        """GET a list of all webhooks from Clio."""
+        url = Session.__make_url("webhooks")
+        return self.__get_resource(url, **kwargs)
+
     def get_document_templates(self, **kwargs):
         """GET a list of Document Templates."""
         url = Session.__make_url("document_templates")
