@@ -443,7 +443,7 @@ class Session:
                     "expires_at": expires_at,
                 },
             },
-            params={"fields": "id,shared_secret,status"},
+            params={"fields": "id,shared_secret,status,expires_at"},
         )
 
     def update_webhook(self, id, json, **kwargs):
