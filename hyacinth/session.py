@@ -103,7 +103,7 @@ class Session:
         if not params:
             params = {}
         params["order"] = "id(asc)"
-        return self.session.get(url, **kwargs)
+        return self.session.get(url, params=params, **kwargs)
 
     @ratelimit
     def __post_resource(self, url, json, **kwargs):
