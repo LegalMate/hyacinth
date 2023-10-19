@@ -97,7 +97,12 @@ class Session:
             )
 
     @ratelimit
-    def __get_resource(self, url, **kwargs):
+    def __get_resource(self, url, params, **kwargs):
+        # use unlimited cursor pagination
+        # https://docs.developers.clio.com/api-docs/paging/#unlimited-cursor-pagination
+        if not params:
+            params = {}
+        params["order"] = "id(asc)"
         return self.session.get(url, **kwargs)
 
     @ratelimit
