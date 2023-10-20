@@ -28,7 +28,7 @@ class TestSession(unittest.TestCase):
         m = MagicMock()
         self.session.session.get = m
         self.session._Session__get_resource(self.test_url)
-        m.assert_called_once_with(self.test_url)
+        m.assert_called_once_with(self.test_url, params={"order": "id(asc)"})
 
     def test__Session__get_paginated_resource_requests_correct_url(self):
         test_data = [
