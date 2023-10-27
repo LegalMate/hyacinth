@@ -591,3 +591,28 @@ class Session:
             url,
             **kwargs,
         )
+
+    def get_relationships(self, **kwargs):
+        """GET a list of Relationships."""
+        url = Session.__make_url("relationships")
+        return self.__get_paginated_resource(url, **kwargs)
+    
+    def get_relationship(self, id, **kwargs):
+        """GET a single Relationship with provided ID."""
+        url = Session.__make_url(f"relationships/{id}")
+        return self.__get_resource(url, **kwargs)
+    
+    def post_relationship(self, json, **kwargs):
+        """POST a new Relationship."""
+        url = Session.__make_url("relationships")
+        return self.__post_resource(url, json=json, **kwargs)
+    
+    def patch_relationship(self, id, json, **kwargs):
+        """PATCH an existing Relationship with provided ID."""
+        url = Session.__make_url(f"relationships/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+    
+    def delete_relationship(self, id, **kwargs):
+        """DELETE an existing Relationship with provided ID."""
+        url = Session.__make_url(f"relationships/{id}")
+        return self.__delete_resource(url, **kwargs)
