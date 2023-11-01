@@ -11,6 +11,9 @@ import aiohttp
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_BASE_URL_US = "https://app.clio.com"
+CLIO_BASE_URL_AU = "https://au.app.clio.com"
+CLIO_BASE_URL_CA = "https://ca.app.clio.com"
+CLIO_BASE_URL_EU = "https://eu.app.clio.com"
 CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
 CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
@@ -596,22 +599,22 @@ class Session:
         """GET a list of Relationships."""
         url = Session.__make_url("relationships")
         return self.__get_paginated_resource(url, **kwargs)
-    
+
     def get_relationship(self, id, **kwargs):
         """GET a single Relationship with provided ID."""
         url = Session.__make_url(f"relationships/{id}")
         return self.__get_resource(url, **kwargs)
-    
+
     def post_relationship(self, json, **kwargs):
         """POST a new Relationship."""
         url = Session.__make_url("relationships")
         return self.__post_resource(url, json=json, **kwargs)
-    
+
     def patch_relationship(self, id, json, **kwargs):
         """PATCH an existing Relationship with provided ID."""
         url = Session.__make_url(f"relationships/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
-    
+
     def delete_relationship(self, id, **kwargs):
         """DELETE an existing Relationship with provided ID."""
         url = Session.__make_url(f"relationships/{id}")
