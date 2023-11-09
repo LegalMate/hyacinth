@@ -29,13 +29,45 @@ log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
 
 
+def ratelimit(f):
+    """Provide blocking rate limits to wrapped fn."""
+    @functools.wraps(f)
+    def wrapper(self, *args, **kwargs):
+        resp = f(self, *args, **kwargs)
+
+        if resp.status_code == 429 and self.ratelimit:
+            retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
+            log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
+            time.sleep(int(retry_after))
+
+            # Retry the request
+            resp = f(self, *args, **kwargs)
+
+        elif self.raise_for_status:
+            resp.raise_for_status()
+
+        self.update_ratelimits(resp)
+
+        # DELETE responses have no content
+        if not resp.content:
+            return None
+
+        # If the response is not JSON, return the content
+        if "application/json" in resp.headers.get("Content-Type"):
+            return resp.json()
+        else:
+            return resp.content
+
+    return wrapper
+
+
 class Session:
-    """Session class for interacting with Clio Manage API.
+    """
+    Session class for interacting with Clio Manage API.
 
-        WARNING: enabling `ratelimit` will block the process
-        synchronously when API rate limits are hit. Partial support
-        for async hyacinth is provided by hyacinth/async_session.py
-
+    WARNING: enabling `ratelimit` will block the process
+    synchronously when API rate limits are hit. Partial support
+    for async hyacinth is provided by hyacinth/async_session.py".
     """
 
     def __init__(
@@ -593,35 +625,3 @@ class Session:
         """DELETE an existing Relationship with provided ID."""
         url = Session.__make_url(f"relationships/{id}")
         return self.__delete_resource(url, **kwargs)
-
-
-def ratelimit(f):
-    """Provide blocking rate limits to wrapped fn."""
-    @functools.wraps(f)
-    def wrapper(self, *args, **kwargs):
-        resp = f(self, *args, **kwargs)
-
-        if resp.status_code == 429 and self.ratelimit:
-            retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
-            log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
-            time.sleep(int(retry_after))
-
-            # Retry the request
-            resp = f(self, *args, **kwargs)
-
-        elif self.raise_for_status:
-            resp.raise_for_status()
-
-        self.update_ratelimits(resp)
-
-        # DELETE responses have no content
-        if not resp.content:
-            return None
-
-        # If the response is not JSON, return the content
-        if "application/json" in resp.headers.get("Content-Type"):
-            return resp.json()
-        else:
-            return resp.content
-
-    return wrapper
