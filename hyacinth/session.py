@@ -32,10 +32,10 @@ log.addHandler(logging.NullHandler())
 class Session:
     """Session class for interacting with Clio Manage API.
 
-        WARNING: enabling `ratelimit` will block the process synchronously
-        when API rate limits are hit. Support for async hyacinth is coming
-        soon.
-    :
+        WARNING: enabling `ratelimit` will block the process
+        synchronously when API rate limits are hit. Partial support
+        for async hyacinth is provided by hyacinth/async_session.py
+
     """
 
     def __init__(
