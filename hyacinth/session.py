@@ -1,11 +1,10 @@
+"""hyacinth/session.py -- Sychronous HTTP Session for Clio HTTP API."""
 import functools
 import logging
 import math
 import requests
 import time
-import hashlib
 import os
-import base64
 import aiohttp
 
 from authlib.integrations.requests_client import OAuth2Session
@@ -14,8 +13,13 @@ CLIO_BASE_URL_US = "https://app.clio.com"
 CLIO_BASE_URL_AU = "https://au.app.clio.com"
 CLIO_BASE_URL_CA = "https://ca.app.clio.com"
 CLIO_BASE_URL_EU = "https://eu.app.clio.com"
-CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
-CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
+
+CLIO_API_BASE_URL_US = f"{CLIO_BASE_URL_US}/api/v4"
+CLIO_API_BASE_URL_AU = f"{CLIO_BASE_URL_AU}/api/v4"
+CLIO_API_BASE_URL_CA = f"{CLIO_BASE_URL_CA}/api/v4"
+CLIO_API_BASE_URL_EU = f"{CLIO_BASE_URL_EU}/api/v4"
+
+CLIO_API_TOKEN_ENDPOINT = f"{CLIO_BASE_URL_US}/oauth/token"
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
@@ -26,6 +30,7 @@ log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
+    """Provide blocking rate limits to wrapped fn."""
     @functools.wraps(f)
     def wrapper(self, *args, **kwargs):
         resp = f(self, *args, **kwargs)
@@ -93,6 +98,7 @@ class Session:
         return f"{CLIO_API_BASE_URL_US}/{path}.json"
 
     def update_ratelimits(self, response):
+        """Update rate limits values from response headers."""
         if self.ratelimit:
             self.ratelimit_limit = response.headers.get(CLIO_API_RATELIMIT_LIMIT_HEADER)
             self.ratelimit_remaining = response.headers.get(
@@ -366,7 +372,7 @@ class Session:
     async def upload_multipart_document(
         self, name, parent_id, parent_type, document, progress_update
     ):
-        """Async fn to upload a new Document to Clio via the multipart upload feature."""
+        """Async fn to upload a Document to Clio via the multipart upload feature."""
         with open(document, "rb") as f:
             file_size = os.path.getsize(document)
             parts = []
