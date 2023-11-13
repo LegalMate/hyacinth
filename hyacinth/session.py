@@ -200,6 +200,21 @@ class Session:
         url = self.make_url("contacts")
         return self.__get_paginated_resource(url, **kwargs)
 
+    def post_contact(self, json, **kwargs):
+        """POST a new Contact."""
+        url = Session.__make_url("contacts")
+        return self.__post_resource(url, json=json, **kwargs)
+
+    def patch_contact(self, id, json, **kwargs):
+        """PATCH an existing Contact with provided ID."""
+        url = Session.__make_url(f"contacts/{id}")
+        return self.__patch_resource(url, json=json, **kwargs)
+
+    def delete_contact(self, id, **kwargs):
+        """DELETE an existing Contact with provided ID."""
+        url = Session.__make_url(f"contacts/{id}")
+        return self.__delete_resource(url, **kwargs)
+
     def get_custom_fields(self, **kwargs):
         """GET a list of Cusom Fields."""
         url = self.make_url("custom_fields")
