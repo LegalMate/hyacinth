@@ -260,6 +260,11 @@ class Session:
         url = Session.__make_url("folders")
         return self.__get_paginated_resource(url, **kwargs)
 
+    def get_folders_content(self, **kwargs):
+        """GET a list of Folder contents."""
+        url = Session.__make_url("folders/list")
+        return self.__get_paginated_resource(url, **kwargs)
+
     def post_folder(self, name, parent_id, parent_type, **kwargs):
         """POST a new Folder."""
         url = Session.__make_url("folders")
