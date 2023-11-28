@@ -251,12 +251,12 @@ class Session:
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_folder(self, id, **kwargs):
-        """GET a Document."""
+        """GET a Folder with provided ID."""
         url = Session.__make_url(f"folders/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_folders(self, **kwargs):
-        """GET a Document."""
+        """GET a list of Folders."""
         url = Session.__make_url("folders")
         return self.__get_paginated_resource(url, **kwargs)
 
