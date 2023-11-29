@@ -82,16 +82,19 @@ class Session:
             update_token=lambda *args: None,  # default update_token does nothing
     ):
         """Initialize Clio API HTTP Session."""
-        if region == "US":
+        # lowercase this region amirite
+        region = region.lower()
+
+        if region == "us":
             self.base_url = CLIO_BASE_URL_US
             self.api_base_url = CLIO_API_BASE_URL_US
-        elif region == "CA":
+        elif region == "ca":
             self.base_url = CLIO_BASE_URL_CA
             self.api_base_url = CLIO_API_BASE_URL_CA
-        elif region == "AU":
+        elif region == "au":
             self.base_url = CLIO_BASE_URL_AU
             self.api_base_url = CLIO_API_BASE_URL_AU
-        elif region == "EU":
+        elif region == "eu":
             self.base_url = CLIO_BASE_URL_EU
             self.api_base_url = CLIO_API_BASE_URL_EU
         else:
