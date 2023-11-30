@@ -8,9 +8,17 @@ import aiofiles.os
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
+CLIO_BASE_URL_US = "https://app.clio.com"
+CLIO_BASE_URL_AU = "https://au.app.clio.com"
+CLIO_BASE_URL_CA = "https://ca.app.clio.com"
+CLIO_BASE_URL_EU = "https://eu.app.clio.com"
 
-CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
-CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
+CLIO_API_BASE_URL_US = f"{CLIO_BASE_URL_US}/api/v4"
+CLIO_API_BASE_URL_AU = f"{CLIO_BASE_URL_AU}/api/v4"
+CLIO_API_BASE_URL_CA = f"{CLIO_BASE_URL_CA}/api/v4"
+CLIO_API_BASE_URL_EU = f"{CLIO_BASE_URL_EU}/api/v4"
+
+CLIO_API_TOKEN_ENDPOINT = "/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 
@@ -52,24 +60,52 @@ class AsyncSession:
     """Class for interacting with Clio Manage API using async/await."""
 
     def __init__(
-        self,
-        token: dict,
-        client_id: str,
-        client_secret: str,
-        ratelimit=False,
-        raise_for_status=False,
-        update_token=lambda *args: None,
+            self,
+            token: dict,
+            client_id: str,
+            client_secret: str,
+            region="US",
+            ratelimit=False,
+            raise_for_status=False,
+            update_token=lambda *args: None,
     ):
         """Initialize our Session with an AsyncOAuth2Client."""
+        # lol
+        region = region.lower()
+
+        if region == "us":
+            self.base_url = CLIO_BASE_URL_US
+            self.api_base_url = CLIO_API_BASE_URL_US
+        elif region == "ca":
+            self.base_url = CLIO_BASE_URL_CA
+            self.api_base_url = CLIO_API_BASE_URL_CA
+        elif region == "au":
+            self.base_url = CLIO_BASE_URL_AU
+            self.api_base_url = CLIO_API_BASE_URL_AU
+        elif region == "eu":
+            self.base_url = CLIO_BASE_URL_EU
+            self.api_base_url = CLIO_API_BASE_URL_EU
+        else:
+            log.warning(f"Invalid region supplied: {region}, defaulting to 'US'")
+            log.info("Region must be one of ['US', 'CA', 'EU', 'AU']")
+            self.base_url = CLIO_BASE_URL_US
+            self.api_base_url = CLIO_API_BASE_URL_US
+
+        self.token_endpoint = self.base_url + CLIO_API_TOKEN_ENDPOINT
+
         self.session = AsyncOAuth2Client(
             client_id=client_id,
             client_secret=client_secret,
             token=token,
-            token_endpoint=CLIO_API_TOKEN_ENDPOINT,
+            token_endpoint=self.token_endpoint,
             update_token=update_token,
         )
         self.ratelimit = ratelimit
         self.raise_for_status = raise_for_status
+
+    def make_url(self, path):
+        """Make Clio API URL."""
+        return f"{self.api_base_url}/{path}.json"
 
     @ratelimit
     async def __get(self, url: str, **kwargs):
@@ -89,7 +125,7 @@ class AsyncSession:
 
     async def get_who_am_i(self):
         """Get Clio User associated with current session token."""
-        url = f"{CLIO_API_BASE_URL_US}/users/who_am_i"
+        url = self.make_url("users/who_am_i")
         return await self.__get(url)
 
     async def upload_document(
@@ -103,7 +139,7 @@ class AsyncSession:
         3. PATCH the Document on Clio as `fully_uploaded`
 
         """
-        post_url = f"{CLIO_API_BASE_URL_US}/documents"
+        post_url = self.make_url("documents")
         clio_document = await self.__post(
             post_url,
             params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
@@ -125,7 +161,7 @@ class AsyncSession:
             async with aiohttp.ClientSession() as session:
                 await session.put(put_url, headers=headers_map, data=f, timeout=3600)
 
-        patch_url = f"{CLIO_API_BASE_URL_US}/documents/{clio_document['data']['id']}"
+        patch_url = self.make_url(f"documents/{clio_document['data']['id']}")
         doc_params = {"fields": "id,name,latest_document_version{fully_uploaded}"}
         if params and params.get("fields"):
             doc_params["fields"] = doc_params["fields"] + "," + params.get("fields")

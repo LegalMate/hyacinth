@@ -1,18 +1,25 @@
+"""hyacinth/session.py -- Sychronous HTTP Session for Clio HTTP API."""
 import functools
 import logging
 import math
 import requests
 import time
-import hashlib
 import os
-import base64
 import aiohttp
 
 from authlib.integrations.requests_client import OAuth2Session
 
 CLIO_BASE_URL_US = "https://app.clio.com"
-CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
-CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
+CLIO_BASE_URL_AU = "https://au.app.clio.com"
+CLIO_BASE_URL_CA = "https://ca.app.clio.com"
+CLIO_BASE_URL_EU = "https://eu.app.clio.com"
+
+CLIO_API_BASE_URL_US = f"{CLIO_BASE_URL_US}/api/v4"
+CLIO_API_BASE_URL_AU = f"{CLIO_BASE_URL_AU}/api/v4"
+CLIO_API_BASE_URL_CA = f"{CLIO_BASE_URL_CA}/api/v4"
+CLIO_API_BASE_URL_EU = f"{CLIO_BASE_URL_EU}/api/v4"
+
+CLIO_API_TOKEN_ENDPOINT = "/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
@@ -23,6 +30,8 @@ log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
+    """Provide blocking rate limits to wrapped fn."""
+
     @functools.wraps(f)
     def wrapper(self, *args, **kwargs):
         resp = f(self, *args, **kwargs)
@@ -54,29 +63,53 @@ def ratelimit(f):
 
 
 class Session:
-    """Session class for interacting with Clio Manage API.
+    """
+    Session class for interacting with Clio Manage API.
 
-        WARNING: enabling `ratelimit` will block the process synchronously
-        when API rate limits are hit. Support for async hyacinth is coming
-        soon.
-    :
+    WARNING: enabling `ratelimit` will block the process
+    synchronously when API rate limits are hit. Partial support
+    for async hyacinth is provided by hyacinth/async_session.py".
     """
 
     def __init__(
-        self,
-        token,
-        client_id,
-        client_secret,
-        ratelimit=False,
-        raise_for_status=False,
-        update_token=lambda *args: None,  # default update_token does nothing
+            self,
+            token,
+            client_id,
+            client_secret,
+            region="US",
+            ratelimit=False,
+            raise_for_status=False,
+            update_token=lambda *args: None,  # default update_token does nothing
     ):
-        """Initialize Session with optional ratelimits."""
+        """Initialize Clio API HTTP Session."""
+        # lowercase this region amirite
+        region = region.lower()
+
+        if region == "us":
+            self.base_url = CLIO_BASE_URL_US
+            self.api_base_url = CLIO_API_BASE_URL_US
+        elif region == "ca":
+            self.base_url = CLIO_BASE_URL_CA
+            self.api_base_url = CLIO_API_BASE_URL_CA
+        elif region == "au":
+            self.base_url = CLIO_BASE_URL_AU
+            self.api_base_url = CLIO_API_BASE_URL_AU
+        elif region == "eu":
+            self.base_url = CLIO_BASE_URL_EU
+            self.api_base_url = CLIO_API_BASE_URL_EU
+        else:
+            log.warning(f"Invalid region supplied: {region}, defaulting to 'US'")
+            log.info("Region must be one of ['US', 'CA', 'EU', 'AU']")
+            self.base_url = CLIO_BASE_URL_US
+            self.api_base_url = CLIO_API_BASE_URL_US
+
+        self.token_endpoint = self.base_url + CLIO_API_TOKEN_ENDPOINT
+
         self.session = OAuth2Session(
             client_id=client_id,
             client_secret=client_secret,
             token=token,
-            token_endpoint=CLIO_API_TOKEN_ENDPOINT,
+            token_endpoint=self.token_endpoint,
             update_token=update_token,
         )
 
@@ -85,11 +118,11 @@ class Session:
         self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
 
-    @staticmethod
-    def __make_url(path):
-        return f"{CLIO_API_BASE_URL_US}/{path}.json"
+    def make_url(self, path):
+        return f"{self.api_base_url}/{path}.json"
 
     def update_ratelimits(self, response):
+        """Update rate limits values from response headers."""
         if self.ratelimit:
             self.ratelimit_limit = response.headers.get(CLIO_API_RATELIMIT_LIMIT_HEADER)
             self.ratelimit_remaining = response.headers.get(
@@ -137,137 +170,137 @@ class Session:
 
     def get_calendars(self, **kwargs):
         """GET Calendars."""
-        url = Session.__make_url("calendars")
+        url = self.make_url("calendars")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_calendar_entry(self, json, **kwargs):
         """POST a Calendar Entry."""
-        url = Session.__make_url("calendar_entries")
+        url = self.make_url("calendar_entries")
         return self.__post_resource(url, json, **kwargs)
 
     def patch_calendar_entry(self, id, json, **kwargs):
         """PATCH a Calendar Entry."""
-        url = Session.__make_url(f"calendar_entries/{id}")
+        url = self.make_url(f"calendar_entries/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def get_calendar_entries(self, **kwargs):
         """GET a list of Calendar Entries."""
-        url = Session.__make_url("calendar_entries")
+        url = self.make_url("calendar_entries")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_calendar_entry(self, calendar_entry_id, **kwargs):
         """GET a Calendar Entry with provided ID."""
-        url = Session.__make_url(f"calendar_entries/{calendar_entry_id}")
+        url = self.make_url(f"calendar_entries/{calendar_entry_id}")
         return self.__get_resource(url, **kwargs)
 
     def get_contact(self, id, **kwargs):
         """GET a Contact with provided ID."""
-        url = Session.__make_url(f"contacts/{id}")
+        url = self.make_url(f"contacts/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_contacts(self, **kwargs):
         """GET a list of Contacts."""
-        url = Session.__make_url("contacts")
+        url = self.make_url("contacts")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_contact(self, json, **kwargs):
         """POST a new Contact."""
-        url = Session.__make_url("contacts")
+        url = Session.make_url("contacts")
         return self.__post_resource(url, json=json, **kwargs)
 
     def patch_contact(self, id, json, **kwargs):
         """PATCH an existing Contact with provided ID."""
-        url = Session.__make_url(f"contacts/{id}")
+        url = Session.make_url(f"contacts/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def delete_contact(self, id, **kwargs):
         """DELETE an existing Contact with provided ID."""
-        url = Session.__make_url(f"contacts/{id}")
+        url = Session.make_url(f"contacts/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def get_custom_fields(self, **kwargs):
         """GET a list of Cusom Fields."""
-        url = Session.__make_url("custom_fields")
+        url = self.make_url("custom_fields")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_who_am_i(self, **kwargs):
         """GET currently authenticated User."""
-        url = Session.__make_url("users/who_am_i")
+        url = self.make_url("users/who_am_i")
         return self.__get_resource(url, **kwargs)
 
     def get_user(self, id, **kwargs):
         """GET a single Userwith provided ID."""
-        url = Session.__make_url(f"users/{id}")
+        url = self.make_url(f"users/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_users(self, **kwargs):
         """GET a list of Users."""
-        url = Session.__make_url("users")
+        url = self.make_url("users")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_document(self, id, **kwargs):
         """GET a Document with provided ID."""
-        url = Session.__make_url(f"documents/{id}")
+        url = self.make_url(f"documents/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_documents(self, **kwargs):
         """GET a list of Documents."""
-        url = Session.__make_url("documents")
+        url = self.make_url("documents")
         return self.__get_paginated_resource(url, **kwargs)
 
     def download_document(self, id, **kwargs):
         """Download a Document with provided ID."""
-        url = Session.__make_url(f"documents/{id}/download")
+        url = self.make_url(f"documents/{id}/download")
         return self.__get_resource(url, **kwargs)
 
     def delete_document(self, id, **kwargs):
         """DELETE an existing Document with provided ID."""
-        url = Session.__make_url(f"documents/{id}")
+        url = self.make_url(f"documents/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def get_matter(self, id, **kwargs):
         """GET a Matter with provided ID."""
-        url = Session.__make_url(f"matters/{id}")
+        url = self.make_url(f"matters/{id}")
         return self.__get_resource(url, **kwargs)
 
     def patch_matter(self, id, json, **kwargs):
         """PATCH a Matter with provided ID with provided JSON."""
-        url = Session.__make_url(f"matters/{id}")
+        url = self.make_url(f"matters/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def post_note(self, json, **kwargs):
         """POST a new Note."""
-        url = Session.__make_url("notes")
+        url = self.make_url("notes")
         return self.__post_resource(url, json=json, **kwargs)
 
     def post_task(self, json, **kwargs):
         """POST a new Task."""
-        url = Session.__make_url("tasks")
+        url = self.make_url("tasks")
         return self.__post_resource(url, json=json, **kwargs)
 
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
-        url = Session.__make_url("matters")
+        url = self.make_url("matters")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_folder(self, id, **kwargs):
         """GET a Folder with provided ID."""
-        url = Session.__make_url(f"folders/{id}")
+        url = self.make_url(f"folders/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_folders(self, **kwargs):
         """GET a list of Folders."""
-        url = Session.__make_url("folders")
+        url = self.make_url("folders")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_folders_content(self, **kwargs):
         """GET a list of Folder contents."""
-        url = Session.__make_url("folders/list")
+        url = self.make_url("folders/list")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_folder(self, name, parent_id, parent_type, **kwargs):
         """POST a new Folder."""
-        url = Session.__make_url("folders")
+        url = self.make_url("folders")
         return self.__post_resource(
             url,
             json={
@@ -278,7 +311,7 @@ class Session:
 
     def delete_folder(self, id, **kwargs):
         """DELETE an existing Folder with provided ID."""
-        url = Session.__make_url(f"folders/{id}")
+        url = self.make_url(f"folders/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def upload_document(
@@ -286,7 +319,7 @@ class Session:
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
-            post_url = Session.__make_url("documents")
+            post_url = self.make_url("documents")
             clio_document = self.__post_resource(
                 post_url,
                 params={
@@ -312,7 +345,7 @@ class Session:
             # We actually DON'T want to use the authenticated client here
             requests.put(put_url, headers=headers_map, data=f, timeout=600)
 
-            patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
+            patch_url = self.make_url(f"documents/{clio_document['data']['id']}")
             patch_resp = self.__patch_resource(
                 patch_url,
                 params={"fields": "id,name,latest_document_version{fully_uploaded}"},
@@ -333,7 +366,7 @@ class Session:
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
-            post_url = Session.__make_url("documents")
+            post_url = self.make_url("documents")
             clio_document = self.__post_resource(
                 post_url,
                 params={
@@ -364,7 +397,7 @@ class Session:
                 log.info(response)
                 progress_update()
 
-            patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
+            patch_url = self.make_url(f"documents/{clio_document['data']['id']}")
             patch_resp = self.__patch_resource(
                 patch_url,
                 params={"fields": "id,name,latest_document_version{fully_uploaded}"},
@@ -383,7 +416,7 @@ class Session:
     async def upload_multipart_document(
         self, name, parent_id, parent_type, document, progress_update
     ):
-        """Async fn to upload a new Document to Clio via the multipart upload feature."""
+        """Async fn to upload a Document to Clio via the multipart upload feature."""
         with open(document, "rb") as f:
             file_size = os.path.getsize(document)
             parts = []
@@ -406,7 +439,7 @@ class Session:
                 }
             )
 
-        post_url = Session.__make_url("documents")
+        post_url = self.make_url("documents")
 
         clio_document = self.__post_resource(
             post_url,
@@ -438,7 +471,7 @@ class Session:
                 log.info(response)
                 progress_update()
 
-        patch_url = self.__make_url(f"documents/{clio_document['data']['id']}")
+        patch_url = self.make_url(f"documents/{clio_document['data']['id']}")
         patch_resp = self.__patch_resource(
             patch_url,
             params={"fields": "id,name,latest_document_version{fully_uploaded}"},
@@ -453,7 +486,7 @@ class Session:
 
     def post_webhook(self, url, model, events, fields=None, expires_at=None):
         """Post a Webhook to Clio."""
-        post_url = Session.__make_url("webhooks")
+        post_url = self.make_url("webhooks")
         model_fields = "id"
         if fields:
             model_fields += "," + fields
@@ -473,137 +506,137 @@ class Session:
 
     def update_webhook(self, id, json, **kwargs):
         """PATCH an existing Webhook with provided ID."""
-        url = Session.__make_url(f"webhooks/{id}")
+        url = self.make_url(f"webhooks/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def delete_webhook(self, id, **kwargs):
         """DELETE an existing Webhook with provided ID."""
-        url = Session.__make_url(f"webhooks/{id}")
+        url = self.make_url(f"webhooks/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def get_webhook(self, id, **kwargs):
         """GET a single Webhook with provided ID."""
-        url = Session.__make_url(f"webhooks/{id}")
+        url = self.make_url(f"webhooks/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_webhooks(self, **kwargs):
         """GET a list of all webhooks from Clio."""
-        url = Session.__make_url("webhooks")
+        url = self.make_url("webhooks")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_document_templates(self, **kwargs):
         """GET a list of Document Templates."""
-        url = Session.__make_url("document_templates")
+        url = self.make_url("document_templates")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_document_automation(self, json, **kwargs):
         """POST a new Document Automation."""
-        url = Session.__make_url("document_automations")
+        url = self.make_url("document_automations")
         return self.__post_resource(url, json=json, **kwargs)
 
     def post_matter(self, json, **kwargs):
         """POST a new Matter."""
-        url = Session.__make_url("matters")
+        url = self.make_url("matters")
         return self.__post_resource(url, json=json, **kwargs)
 
     def get_activity(self, id, **kwargs):
         """GET a single Activity with provided ID."""
-        url = Session.__make_url(f"activities/{id}")
+        url = self.make_url(f"activities/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_activities(self, **kwargs):
         """GET a list of Activities."""
-        url = Session.__make_url("activities")
+        url = self.make_url("activities")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_activity(self, json, **kwargs):
         """POST a new Activity."""
-        url = Session.__make_url("activities")
+        url = self.make_url("activities")
         return self.__post_resource(url, json=json, **kwargs)
 
     def patch_activity(self, id, json, **kwargs):
         """PATCH an existing Activity with provided ID."""
-        url = Session.__make_url(f"activities/{id}")
+        url = self.make_url(f"activities/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def delete_activity(self, id, **kwargs):
         """DELETE an existing Activity with provided ID."""
-        url = Session.__make_url(f"activities/{id}")
+        url = self.make_url(f"activities/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def get_activity_description(self, id, **kwargs):
         """GET a single Activity Description with provided ID."""
-        url = Session.__make_url(f"activity_descriptions/{id}")
+        url = self.make_url(f"activity_descriptions/{id}")
         return self.__get_resource(url, **kwargs)
 
     def get_activity_descriptions(self, **kwargs):
         """GET a list of Activity Descriptions."""
-        url = Session.__make_url("activity_descriptions")
+        url = self.make_url("activity_descriptions")
         return self.__get_paginated_resource(url, **kwargs)
 
     def post_activity_description(self, json, **kwargs):
         """POST a new Activity Description."""
-        url = Session.__make_url("activity_descriptions")
+        url = self.make_url("activity_descriptions")
         return self.__post_resource(url, json=json, **kwargs)
 
     def get_bills(self, **kwargs):
         """GET a list of Bills."""
-        url = Session.__make_url("bills")
+        url = self.make_url("bills")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_bill(self, id, **kwargs):
         """GET a single Bill with provided ID."""
-        url = Session.__make_url(f"bills/{id}")
+        url = self.make_url(f"bills/{id}")
         return self.__get_resource(url, **kwargs)
 
     def patch_bill(self, id, json, **kwargs):
         """PATCH an existing Bill with provided ID."""
-        url = Session.__make_url(f"bills/{id}")
+        url = self.make_url(f"bills/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def delete_bill(self, id, **kwargs):
         """DELETE an existing Bill with provided ID."""
-        url = Session.__make_url(f"bills/{id}")
+        url = self.make_url(f"bills/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def get_line_items(self, **kwargs):
         """GET a list of Line Items."""
-        url = Session.__make_url("line_items")
+        url = self.make_url("line_items")
         return self.__get_paginated_resource(url, **kwargs)
 
     def patch_line_item(self, id, json, **kwargs):
         """PATCH an existing line item with provided ID of line item."""
-        url = Session.__make_url(f"line_items/{id}")
+        url = self.make_url(f"line_items/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def get_custom_actions(self, **kwargs):
         """GET a list of Custom Actions."""
-        url = Session.__make_url("custom_actions")
+        url = self.make_url("custom_actions")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_custom_action(self, id, **kwargs):
         """GET a single Custom Action with provided ID."""
-        url = Session.__make_url(f"custom_actions/{id}")
+        url = self.make_url(f"custom_actions/{id}")
         return self.__get_resource(url, **kwargs)
 
     def post_custom_action(self, json, **kwargs):
         """POST a new Custom Action."""
-        url = Session.__make_url("custom_actions")
+        url = self.make_url("custom_actions")
         return self.__post_resource(url, json=json, **kwargs)
 
     def patch_custom_action(self, id, json, **kwargs):
         """PATCH an existing Custom Action with provided ID."""
-        url = Session.__make_url(f"custom_actions/{id}")
+        url = self.make_url(f"custom_actions/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def delete_custom_action(self, id, **kwargs):
         """DELETE an existing Custom Action with provided ID."""
-        url = Session.__make_url(f"custom_actions/{id}")
+        url = self.make_url(f"custom_actions/{id}")
         return self.__delete_resource(url, **kwargs)
 
     def verify_custom_action(self, subject_url, custom_action_nonce, **kwargs):
         """Verify a Custom Action."""
-        url = CLIO_BASE_URL_US + subject_url
+        url = self.base_url + subject_url
         params = kwargs.get("params", {})
         params.update({"custom_action_nonce": custom_action_nonce})
         kwargs["params"] = params
@@ -614,25 +647,25 @@ class Session:
 
     def get_relationships(self, **kwargs):
         """GET a list of Relationships."""
-        url = Session.__make_url("relationships")
+        url = self.make_url("relationships")
         return self.__get_paginated_resource(url, **kwargs)
 
     def get_relationship(self, id, **kwargs):
         """GET a single Relationship with provided ID."""
-        url = Session.__make_url(f"relationships/{id}")
+        url = self.make_url(f"relationships/{id}")
         return self.__get_resource(url, **kwargs)
 
     def post_relationship(self, json, **kwargs):
         """POST a new Relationship."""
-        url = Session.__make_url("relationships")
+        url = self.make_url("relationships")
         return self.__post_resource(url, json=json, **kwargs)
 
     def patch_relationship(self, id, json, **kwargs):
         """PATCH an existing Relationship with provided ID."""
-        url = Session.__make_url(f"relationships/{id}")
+        url = self.make_url(f"relationships/{id}")
         return self.__patch_resource(url, json=json, **kwargs)
 
     def delete_relationship(self, id, **kwargs):
         """DELETE an existing Relationship with provided ID."""
-        url = Session.__make_url(f"relationships/{id}")
+        url = self.make_url(f"relationships/{id}")
         return self.__delete_resource(url, **kwargs)

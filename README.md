@@ -5,10 +5,12 @@ Python HTTP Client library for the Clio Manage API
 
 ## Features
 
-- OAuth2 token support
+- OAuth2 token + refresh support
 - Pagination via Cursors
 - Rate limiting (by token)
-- Update upstream tokens after refresh
+- Multi-part Document uploads
+- Blocking and `async` Document uploads
+- Clio Regions (`US`, `CA`, `EU`, and `AU`)
 
 ## Usage
 

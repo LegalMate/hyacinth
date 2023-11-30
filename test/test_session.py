@@ -19,10 +19,63 @@ test_client_secret = "test_client_secret"
 class TestSession(unittest.TestCase):
     def setUp(self):
         self.session = hyacinth.Session(
-            token=test_token, client_id=test_client_id, client_secret=test_client_secret
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
         )
         self.test_url = "https://test-url.com"
         self.test_params = {}
+
+    def test_invalid_region_session(self):
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            region="JP",
+        )
+        # defaults to 'US' region
+        self.assertEqual(session.make_url("who_am_i"),
+                         "https://app.clio.com/api/v4/who_am_i.json")
+
+    def test_us_region_session(self):
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            region="US",
+        )
+        self.assertEqual(session.make_url("who_am_i"),
+                         "https://app.clio.com/api/v4/who_am_i.json")
+
+    def test_ca_region_session(self):
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            region="CA",
+        )
+        self.assertEqual(session.make_url("who_am_i"),
+                         "https://ca.app.clio.com/api/v4/who_am_i.json")
+
+    def test_eu_region_session(self):
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            region="EU",
+        )
+        self.assertEqual(session.make_url("who_am_i"),
+                         "https://eu.app.clio.com/api/v4/who_am_i.json")
+
+    def test_au_region_session(self):
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            region="AU",
+        )
+        self.assertEqual(session.make_url("who_am_i"),
+                         "https://au.app.clio.com/api/v4/who_am_i.json")
 
     def test_get_resource_requests_correct_url(self):
         m = MagicMock()
