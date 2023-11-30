@@ -8,12 +8,6 @@ import aiofiles.os
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
-
-CLIO_API_BASE_URL_US = "https://app.clio.com/api/v4"
-CLIO_API_TOKEN_ENDPOINT = "https://app.clio.com/oauth/token"  # nosec
-CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
-CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
-
 CLIO_BASE_URL_US = "https://app.clio.com"
 CLIO_BASE_URL_AU = "https://au.app.clio.com"
 CLIO_BASE_URL_CA = "https://ca.app.clio.com"
@@ -23,6 +17,10 @@ CLIO_API_BASE_URL_US = f"{CLIO_BASE_URL_US}/api/v4"
 CLIO_API_BASE_URL_AU = f"{CLIO_BASE_URL_AU}/api/v4"
 CLIO_API_BASE_URL_CA = f"{CLIO_BASE_URL_CA}/api/v4"
 CLIO_API_BASE_URL_EU = f"{CLIO_BASE_URL_EU}/api/v4"
+
+CLIO_API_TOKEN_ENDPOINT = "/oauth/token"  # nosec
+CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
+CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 
 
 log = logging.getLogger(__name__)
