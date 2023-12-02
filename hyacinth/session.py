@@ -315,7 +315,7 @@ class Session:
         return self.__delete_resource(url, **kwargs)
 
     def upload_document(
-        self, name, parent_id, parent_type, document, progress_update=lambda *args: None
+            self, name, parent_id, parent_type, document_category_id, document, progress_update=lambda *args: None
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
@@ -329,6 +329,7 @@ class Session:
                     "data": {
                         "name": name,
                         "parent": {"id": parent_id, "type": parent_type},
+                        "document_category": {"id": document_category_id},
                     }
                 },
             )
@@ -362,7 +363,7 @@ class Session:
             return patch_resp
 
     async def upload_document_async(
-        self, name, parent_id, parent_type, document, progress_update=lambda *args: None
+            self, name, parent_id, parent_type, document_category_id, document, progress_update=lambda *args: None
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
@@ -376,6 +377,7 @@ class Session:
                     "data": {
                         "name": name,
                         "parent": {"id": parent_id, "type": parent_type},
+                        "document_category": {"id": document_category_id},
                     }
                 },
             )

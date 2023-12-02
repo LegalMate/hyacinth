@@ -129,7 +129,7 @@ class AsyncSession:
         return await self.__get(url)
 
     async def upload_document(
-        self, name, parent_id, parent_type, document, params=None, **kwargs
+            self, name, parent_id, parent_type, document_category_id, document, params=None, **kwargs
     ):
         """Upload a new Document to Clio.
 
@@ -144,7 +144,11 @@ class AsyncSession:
             post_url,
             params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
             json={
-                "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+                "data": {
+                    "name": name,
+                    "parent": {"id": parent_id, "type": parent_type},
+                    "document_category": {"id": document_category_id},
+                }
             },
         )
 
