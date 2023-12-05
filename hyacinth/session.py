@@ -363,7 +363,7 @@ class Session:
             return patch_resp
 
     async def upload_document_async(
-            self, name, parent_id, parent_type, document, document_category_id, progress_update=lambda *args: None
+            self, name, parent_id, parent_type, document, document_category_id=None, progress_update=lambda *args: None
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
