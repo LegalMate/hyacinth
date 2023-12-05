@@ -129,7 +129,7 @@ class AsyncSession:
         return await self.__get(url)
 
     async def upload_document(
-            self, name, parent_id, parent_type, document_category_id, document, params=None, **kwargs
+            self, name, parent_id, parent_type, document, document_category_id=None, params=None, **kwargs
     ):
         """Upload a new Document to Clio.
 
