@@ -416,7 +416,7 @@ class Session:
             return patch_resp
 
     async def upload_multipart_document(
-        self, name, parent_id, parent_type, document, progress_update
+            self, name, parent_id, parent_type, document, progress_update, document_category_id=None
     ):
         """Async fn to upload a Document to Clio via the multipart upload feature."""
         with open(document, "rb") as f:
@@ -452,6 +452,7 @@ class Session:
                 "data": {
                     "name": name,
                     "parent": {"id": parent_id, "type": parent_type},
+                    "document_category": {"id": document_category_id},
                     "multiparts": multiparts,
                 }
             },
