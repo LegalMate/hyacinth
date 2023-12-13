@@ -673,7 +673,7 @@ class Session:
         url = self.make_url(f"relationships/{id}")
         return self.__delete_resource(url, **kwargs)
 
-    def post_documentcategory(self, json, **kwargs):
+    def post_document_category(self, json, **kwargs):
         """POST a new Document Category."""
         url = self.make_url("document_categories")
         return self.__post_resource(url, json=json, **kwargs)
