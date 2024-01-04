@@ -159,6 +159,7 @@ class Session:
 
     def get_paginated_resource(self, url, **kwargs):
         """GET a paginated Resource from Clio API."""
+        import ipdb; ipdb.set_trace()
         resp = self.get_resource(url, **kwargs)
         if not self.autopaginate:
             return resp
