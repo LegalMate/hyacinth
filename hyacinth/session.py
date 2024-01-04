@@ -80,6 +80,7 @@ class Session:
             ratelimit=False,
             raise_for_status=False,
             update_token=lambda *args: None,  # default update_token does nothing
+            autopaginate=True,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -117,6 +118,7 @@ class Session:
         self.ratelimit_limit = math.inf
         self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
+        self.autopaginate = autopaginate
 
     def make_url(self, path):
         """Make a new URL for Clio API."""
@@ -157,22 +159,25 @@ class Session:
 
     def get_paginated_resource(self, url, **kwargs):
         """GET a paginated Resource from Clio API."""
-        next_url = url
-        while next_url:
-            resp = self.get_resource(next_url, **kwargs)
-            for datum in resp["data"]:
-                yield datum
+        resp = self.get_resource(url, **kwargs)
+        if not self.autopaginate:
+            return resp
 
-            paging = resp["meta"].get("paging")
-            if paging:
-                if paging.get("next"):
-                    next_url = paging["next"]
-                else:
-                    # no more next page, break
-                    next_url = None
+        for datum in resp["data"]:
+            yield datum
+
+        paging = resp["meta"].get("paging")
+        if paging:
+            if paging.get("next"):
+                next_url = paging["next"]
             else:
-                # no paging meta, break the loop
+                # no more next page, break
                 next_url = None
+        else:
+            next_url = None
+
+        while next_url:
+            return self.get_paginated_resource(next_url, **kwargs)
 
     def get_calendars(self, **kwargs):
         """GET Calendars."""
