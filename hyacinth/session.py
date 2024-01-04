@@ -158,10 +158,15 @@ class Session:
         return self.session.delete(url, **kwargs)
 
     def get_paginated_resource(self, url, **kwargs):
-        """GET a paginated Resource from Clio API."""
-        resp = self.get_resource(url, **kwargs)
+        """Get a paginated Resource from Clio API."""
         if not self.autopaginate:
-            yield resp
+            return self.get_resource(url, **kwargs)
+        else:
+            return self.get_autopaginated_resource(url, **kwargs)
+
+    def get_autopaginated_resource(self, url, **kwargs):
+        """GET a paginated Resource from Clio API, following page links."""
+        resp = self.get_resource(url, **kwargs)
 
         for d in resp["data"]:
             yield d
