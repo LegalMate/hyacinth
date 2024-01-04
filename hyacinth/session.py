@@ -159,13 +159,12 @@ class Session:
 
     def get_paginated_resource(self, url, **kwargs):
         """GET a paginated Resource from Clio API."""
-        import ipdb; ipdb.set_trace()
         resp = self.get_resource(url, **kwargs)
         if not self.autopaginate:
-            return resp
+            yield resp
 
-        for datum in resp["data"]:
-            yield datum
+        for d in resp["data"]:
+            yield d
 
         paging = resp["meta"].get("paging")
         if paging:
@@ -178,7 +177,7 @@ class Session:
             next_url = None
 
         while next_url:
-            return self.get_paginated_resource(next_url, **kwargs)
+            yield from self.get_paginated_resource(next_url, **kwargs)
 
     def get_calendars(self, **kwargs):
         """GET Calendars."""
