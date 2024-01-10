@@ -72,15 +72,15 @@ class Session:
     """
 
     def __init__(
-            self,
-            token,
-            client_id,
-            client_secret,
-            region="US",
-            ratelimit=False,
-            raise_for_status=False,
-            update_token=lambda *args: None,  # default update_token does nothing
-            autopaginate=True,
+        self,
+        token,
+        client_id,
+        client_secret,
+        region="US",
+        ratelimit=False,
+        raise_for_status=False,
+        update_token=lambda *args: None,  # default update_token does nothing
+        autopaginate=True,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -165,24 +165,15 @@ class Session:
             return self.get_autopaginated_resource(url, **kwargs)
 
     def get_autopaginated_resource(self, url, **kwargs):
-        """GET a paginated Resource from Clio API, following page links."""
-        resp = self.get_resource(url, **kwargs)
+        """GET a paginated Resource from Clio, following page links."""
+        while url:
+            resp = self.get_resource(url, **kwargs)
 
-        for d in resp["data"]:
-            yield d
+            for d in resp["data"]:
+                yield d
 
-        paging = resp["meta"].get("paging")
-        if paging:
-            if paging.get("next"):
-                next_url = paging["next"]
-            else:
-                # no more next page, break
-                next_url = None
-        else:
-            next_url = None
-
-        while next_url:
-            yield from self.get_paginated_resource(next_url, **kwargs)
+            paging = resp["meta"].get("paging")
+            url = paging.get("next") if paging else None
 
     def get_calendars(self, **kwargs):
         """GET Calendars."""
@@ -341,7 +332,13 @@ class Session:
         return self.delete_resource(url, **kwargs)
 
     def upload_document(
-            self, name, parent_id, parent_type, document, document_category_id=None, progress_update=lambda *args: None
+        self,
+        name,
+        parent_id,
+        parent_type,
+        document,
+        document_category_id=None,
+        progress_update=lambda *args: None,
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
@@ -389,7 +386,13 @@ class Session:
             return patch_resp
 
     async def upload_document_async(
-            self, name, parent_id, parent_type, document, document_category_id=None, progress_update=lambda *args: None
+        self,
+        name,
+        parent_id,
+        parent_type,
+        document,
+        document_category_id=None,
+        progress_update=lambda *args: None,
     ):
         """POST a new Document, PUT the data, and PATCH Document as fully_uploaded."""
         with open(document, "rb") as f:
@@ -442,7 +445,13 @@ class Session:
             return patch_resp
 
     async def upload_multipart_document(
-            self, name, parent_id, parent_type, document, progress_update, document_category_id=None
+        self,
+        name,
+        parent_id,
+        parent_type,
+        document,
+        progress_update,
+        document_category_id=None,
     ):
         """Async fn to upload a Document to Clio via the multipart upload feature."""
         with open(document, "rb") as f:
