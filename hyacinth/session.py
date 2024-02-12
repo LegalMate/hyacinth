@@ -1,4 +1,5 @@
 """hyacinth/session.py -- Sychronous HTTP Session for Clio HTTP API."""
+
 import functools
 import logging
 import math
@@ -290,10 +291,30 @@ class Session:
         url = self.make_url("notes")
         return self.post_resource(url, json=json, **kwargs)
 
+    def get_tasks(self, **kwargs):
+        """GET a list of Tasks."""
+        url = self.make_url("tasks")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_task(self, id, **kwargs):
+        """GET a Task with provided ID."""
+        url = self.make_url(f"tasks/{id}")
+        return self.get_resource(url, **kwargs)
+
     def post_task(self, json, **kwargs):
         """POST a new Task."""
         url = self.make_url("tasks")
         return self.post_resource(url, json=json, **kwargs)
+
+    def patch_task(self, id, json, **kwargs):
+        """PATCH an existing Task with provided ID."""
+        url = self.make_url(f"tasks/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
+    def delete_task(self, id, **kwargs):
+        """DELETE an existing Task with provided ID."""
+        url = self.make_url(f"tasks/{id}")
+        return self.delete_resource(url, **kwargs)
 
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
