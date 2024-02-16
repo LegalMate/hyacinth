@@ -316,6 +316,11 @@ class Session:
         url = self.make_url(f"tasks/{id}")
         return self.delete_resource(url, **kwargs)
 
+    def post_task_list(self, json, **kwargs):
+        """POST a new Task List."""
+        url = self.make_url("task_lists")
+        return self.post_resource(url, json=json, **kwargs)
+
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = self.make_url("matters")
