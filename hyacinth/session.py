@@ -321,6 +321,31 @@ class Session:
         url = self.make_url("task_lists")
         return self.post_resource(url, json=json, **kwargs)
 
+    def get_task_template_lists(self, **kwargs):
+        """GET a list of Task Template Lists."""
+        url = self.make_url("task_template_lists")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_task_template_list(self, id, **kwargs):
+        """GET a Task Template List with provided ID."""
+        url = self.make_url(f"task_template_lists/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def post_task_template_list(self, json, **kwargs):
+        """POST a new Task Template List."""
+        url = self.make_url("task_template_lists")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_task_template_list(self, id, json, **kwargs):
+        """PATCH an existing Task Template List with provided ID."""
+        url = self.make_url(f"task_template_lists/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
+    def delete_task_template_list(self, id, **kwargs):
+        """DELETE an existing Task Template List with provided ID."""
+        url = self.make_url(f"task_template_lists/{id}")
+        return self.delete_resource(url, **kwargs)
+
     def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = self.make_url("matters")
