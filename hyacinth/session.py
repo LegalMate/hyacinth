@@ -82,7 +82,7 @@ class Session:
         region="US",
         ratelimit=False,
         raise_for_status=False,
-        update_token=lambda *args: None,  # default update_token does nothing
+        update_token=lambda *args, **kwargs: None,  # default update_token does nothing
         autopaginate=True,
     ):
         """Initialize Clio API HTTP Session."""
