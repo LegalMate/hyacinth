@@ -46,6 +46,8 @@ def ratelimit(f):
             resp = f(self, *args, **kwargs)
 
         elif self.raise_for_status:
+            if resp.status_code > 299:
+                log.warning(f"Non-200 status code: {resp.content}")
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
