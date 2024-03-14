@@ -620,6 +620,11 @@ class Session:
         url = self.make_url("document_templates")
         return self.get_paginated_resource(url, **kwargs)
 
+    def get_document_automation(self, document_automation_id, **kwargs):
+        """GET a Document Automation."""
+        url = self.make_url(f"document_automations/{document_automation_id}")
+        return self.get_resource(url, **kwargs)
+
     def post_document_automation(self, json, **kwargs):
         """POST a new Document Automation."""
         url = self.make_url("document_automations")
