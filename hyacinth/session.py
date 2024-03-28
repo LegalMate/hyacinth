@@ -290,7 +290,7 @@ class Session:
 
     def get_matter_finances(self, id, **kwargs):
         """GET a Matter's Finances with provided ID."""
-        url = self.make_url(f"matters/{id}/finances")
+        url = self.make_url(f"matter_finances/{id}")
         return self.get_resource(url, **kwargs)
 
     def post_note(self, json, **kwargs):
