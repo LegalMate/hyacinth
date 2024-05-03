@@ -288,6 +288,11 @@ class Session:
         url = self.make_url(f"matters/{id}")
         return self.patch_resource(url, json=json, **kwargs)
 
+    def get_matter_stages(self, **kwargs):
+        """GET a list of Matter Stages."""
+        url = self.make_url("matter_stages")
+        return self.get_paginated_resource(url, **kwargs)
+
     def get_matter_finances(self, id, **kwargs):
         """GET a Matter's Finances with provided ID."""
         url = self.make_url(f"matter_finances/{id}")
