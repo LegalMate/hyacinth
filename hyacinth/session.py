@@ -780,3 +780,28 @@ class Session:
         """POST a new Document Category."""
         url = self.make_url("document_categories")
         return self.post_resource(url, json=json, **kwargs)
+
+    def get_practice_areas(self, **kwargs):
+        """GET a list of Practice Areas."""
+        url = self.make_url("practice_areas")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_practice_area(self, id, **kwargs):
+        """GET a single Practice Area with provided ID."""
+        url = self.make_url(f"practice_areas/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def post_practice_area(self, json, **kwargs):
+        """POST a new Practice Area."""
+        url = self.make_url("practice_areas")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_practice_area(self, id, json, **kwargs):
+        """PATCH an existing Practice Area with provided ID."""
+        url = self.make_url(f"practice_areas/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
+    def delete_practice_area(self, id, **kwargs):
+        """DELETE an existing Practice Area with provided ID."""
+        url = self.make_url(f"practice_areas/{id}")
+        return self.delete_resource(url, **kwargs)
