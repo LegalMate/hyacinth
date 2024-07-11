@@ -215,17 +215,17 @@ class Session:
 
     def post_contact(self, json, **kwargs):
         """POST a new Contact."""
-        url = Session.make_url("contacts")
+        url = self.make_url("contacts")
         return self.post_resource(url, json=json, **kwargs)
 
     def patch_contact(self, id, json, **kwargs):
         """PATCH an existing Contact with provided ID."""
-        url = Session.make_url(f"contacts/{id}")
+        url = self.make_url(f"contacts/{id}")
         return self.patch_resource(url, json=json, **kwargs)
 
     def delete_contact(self, id, **kwargs):
         """DELETE an existing Contact with provided ID."""
-        url = Session.make_url(f"contacts/{id}")
+        url = self.make_url(f"contacts/{id}")
         return self.delete_resource(url, **kwargs)
 
     def get_custom_fields(self, **kwargs):
