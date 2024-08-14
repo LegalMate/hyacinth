@@ -298,6 +298,11 @@ class Session:
         url = self.make_url(f"matter_finances/{id}")
         return self.get_resource(url, **kwargs)
 
+    def get_matter_client(self, matter_id, **kwargs):
+        """GET a Matter's Client with provided Matter ID."""
+        url = self.make_url(f"matters/{matter_id}/client")
+        return self.get_resource(url, **kwargs)
+
     def post_note(self, json, **kwargs):
         """POST a new Note."""
         url = self.make_url("notes")
