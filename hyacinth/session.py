@@ -45,7 +45,16 @@ def ratelimit(f):
             # Retry the request
             resp = f(self, *args, **kwargs)
 
-        elif self.raise_for_status:
+        # Sometimes we get a crazy json encoded rate limit error instead of the normal one
+        if "application/json" in resp.headers.get("Content-Type"):
+            json = resp.json()
+
+            if json.get("metadata"):
+                if json.get("metadata").get("encodingDecoded") == "text/plain":
+                    time.sleep(60)  # no way to know how long to wait, default to 60s
+                    resp = f(self, *args, **kwargs)
+
+        if self.raise_for_status:
             if resp.status_code > 299:
                 log.warning(f"Non-200 status code: {resp.content}")
             resp.raise_for_status()
