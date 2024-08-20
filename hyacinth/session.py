@@ -7,6 +7,7 @@ import requests
 import time
 import os
 import aiohttp
+import base64
 
 from authlib.integrations.requests_client import OAuth2Session
 
@@ -51,8 +52,16 @@ def ratelimit(f):
 
             if json.get("metadata"):
                 if json.get("metadata").get("encodingDecoded") == "text/plain":
-                    time.sleep(60)  # no way to know how long to wait, default to 60s
-                    resp = f(self, *args, **kwargs)
+                    try:
+                        data = base64.b64decode(json.get("data"))
+                        data_string = data.decode("utf-8")
+
+                        if "RateLimited" in data_string:
+                            time.sleep(60)  # no way to know how long to wait, default to 60s
+                            resp = f(self, *args, **kwargs)
+                    except Exception as e:
+                        log.exception(e)
+                        log.error(f"Unable to decode b64 encoded string with response content {resp}")
 
         if self.raise_for_status:
             if resp.status_code > 299:
