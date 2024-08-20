@@ -7,6 +7,7 @@ import requests
 import time
 import os
 import aiohttp
+import base64
 
 from authlib.integrations.requests_client import OAuth2Session
 
@@ -45,7 +46,24 @@ def ratelimit(f):
             # Retry the request
             resp = f(self, *args, **kwargs)
 
-        elif self.raise_for_status:
+        # Sometimes we get a crazy json encoded rate limit error instead of the normal one
+        if "application/json" in resp.headers.get("Content-Type"):
+            json = resp.json()
+
+            if json.get("metadata"):
+                if json.get("metadata").get("encodingDecoded") == "text/plain":
+                    try:
+                        data = base64.b64decode(json.get("data"))
+                        data_string = data.decode("utf-8")
+
+                        if "RateLimited" in data_string:
+                            time.sleep(60)  # no way to know how long to wait, default to 60s
+                            resp = f(self, *args, **kwargs)
+                    except Exception as e:
+                        log.exception(e)
+                        log.error(f"Unable to decode b64 encoded string with response content {resp}")
+
+        if self.raise_for_status:
             if resp.status_code > 299:
                 log.warning(f"Non-200 status code: {resp.content}")
             resp.raise_for_status()
