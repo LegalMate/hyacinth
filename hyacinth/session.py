@@ -47,7 +47,7 @@ def ratelimit(f):
             resp = f(self, *args, **kwargs)
 
         # Sometimes we get a crazy json encoded rate limit error instead of the normal one
-        if "application/json" in resp.headers.get("Content-Type"):
+        if "application/json" in resp.headers.get("Content-Type", []):
             json = resp.json()
 
             if json.get("metadata"):
