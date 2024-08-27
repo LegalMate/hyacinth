@@ -57,11 +57,15 @@ def ratelimit(f):
                         data_string = data.decode("utf-8")
 
                         if "RateLimited" in data_string:
-                            time.sleep(60)  # no way to know how long to wait, default to 60s
+                            time.sleep(
+                                60
+                            )  # no way to know how long to wait, default to 60s
                             resp = f(self, *args, **kwargs)
                     except Exception as e:
                         log.exception(e)
-                        log.error(f"Unable to decode b64 encoded string with response content {resp}")
+                        log.error(
+                            f"Unable to decode b64 encoded string with response content {resp}"
+                        )
 
         if self.raise_for_status:
             if resp.status_code > 299:
@@ -827,4 +831,29 @@ class Session:
     def delete_practice_area(self, id, **kwargs):
         """DELETE an existing Practice Area with provided ID."""
         url = self.make_url(f"practice_areas/{id}")
+        return self.delete_resource(url, **kwargs)
+
+    def get_communications(self, **kwargs):
+        """GET a list of Communications."""
+        url = self.make_url("communications")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_communication(self, id, **kwargs):
+        """GET a single Communication with provided ID."""
+        url = self.make_url(f"communications/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def post_communication(self, json, **kwargs):
+        """POST a new Communication."""
+        url = self.make_url("communications")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_communication(self, id, json, **kwargs):
+        """PATCH an existing Communication with provided ID."""
+        url = self.make_url(f"communications/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
+    def delete_communication(self, id, **kwargs):
+        """DELETE an existing Communication with provided ID."""
+        url = self.make_url(f"communications/{id}")
         return self.delete_resource(url, **kwargs)
