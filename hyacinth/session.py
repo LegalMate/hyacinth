@@ -8,6 +8,7 @@ import time
 import os
 import aiohttp
 import base64
+import asyncio
 
 from authlib.integrations.requests_client import OAuth2Session
 
@@ -32,23 +33,25 @@ log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
-    """Provide blocking rate limits to wrapped fn."""
+    """Provide non-blocking rate limits to wrapped fn."""
 
     @functools.wraps(f)
-    def wrapper(self, *args, **kwargs):
-        resp = f(self, *args, **kwargs)
+    async def wrapper(self, *args, **kwargs):
+        # Run the synchronous function in the event loop's default executor
+        loop = asyncio.get_event_loop()
+        resp = await loop.run_in_executor(None, f, self, *args, **kwargs)
 
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
-            time.sleep(int(retry_after))
+            await asyncio.sleep(int(retry_after))
 
-            # Retry the request
-            resp = f(self, *args, **kwargs)
+            # Retry the request in executor
+            resp = await loop.run_in_executor(None, f, self, *args, **kwargs)
 
-        # Sometimes we get a crazy json encoded rate limit error instead of the normal one
+        # Handle JSON decoding in the response, if applicable
         if "application/json" in resp.headers.get("Content-Type", []):
-            json = resp.json()
+            json = await loop.run_in_executor(None, resp.json)
 
             if json.get("metadata"):
                 if json.get("metadata").get("encodingDecoded") == "text/plain":
@@ -57,10 +60,10 @@ def ratelimit(f):
                         data_string = data.decode("utf-8")
 
                         if "RateLimited" in data_string:
-                            time.sleep(
-                                60
-                            )  # no way to know how long to wait, default to 60s
-                            resp = f(self, *args, **kwargs)
+                            await asyncio.sleep(60)  # default wait 60s
+                            resp = await loop.run_in_executor(
+                                None, f, self, *args, **kwargs
+                            )
                     except Exception as e:
                         log.exception(e)
                         log.error(
@@ -78,9 +81,9 @@ def ratelimit(f):
         if not resp.content:
             return None
 
-        # If the response is not JSON, return the content
+        # If the response is JSON, return the parsed content
         if "application/json" in resp.headers.get("Content-Type"):
-            return resp.json()
+            return await loop.run_in_executor(None, resp.json)
         else:
             return resp.content
 
