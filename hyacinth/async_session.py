@@ -39,10 +39,6 @@ def ratelimit(f):
     async def wrapper(self, *args, **kwargs):
         resp = await f(self, *args, **kwargs)
 
-        # Check if resp is already a dict or string (processed response)
-        if isinstance(resp, (dict, str)):
-            return resp
-
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
