@@ -1,10 +1,13 @@
 """async_session.py -- Async Session for Clio API."""
+
 import logging
 import functools
 import asyncio
 import aiohttp
 import aiofiles
 import aiofiles.os
+import base64
+import math
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
@@ -21,7 +24,9 @@ CLIO_API_BASE_URL_EU = f"{CLIO_BASE_URL_EU}/api/v4"
 CLIO_API_TOKEN_ENDPOINT = "/oauth/token"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
+CLIO_API_RETRY_AFTER = "Retry-After"
 
+PART_SIZE = 104857600  # 100 megabytes in bytes
 
 log = logging.getLogger(__name__)
 log.addHandler(logging.NullHandler())
@@ -29,7 +34,6 @@ log.addHandler(logging.NullHandler())
 
 def ratelimit(f):
     """Rate limit a function with Clio rate limits.
-
     See: https://docs.developers.clio.com/api-docs/rate-limits/
     """
 
@@ -38,39 +42,73 @@ def ratelimit(f):
         resp = await f(self, *args, **kwargs)
 
         if resp.status_code == 429 and self.ratelimit:
-            retry_after = resp.headers.get("Retry-After")
+            retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
-
-            # Retry the request after sleeping for the required time
             await asyncio.sleep(int(retry_after))
+
+            # Retry the request
             resp = await f(self, *args, **kwargs)
 
-        elif self.raise_for_status:
+        # Sometimes we get a crazy json encoded rate limit error instead of the normal one
+        if "application/json" in resp.headers.get("Content-Type", []):
+            json = resp.json()
+
+            if json.get("metadata"):
+                if json.get("metadata").get("encodingDecoded") == "text/plain":
+                    try:
+                        data = base64.b64decode(json.get("data"))
+                        data_string = data.decode("utf-8")
+
+                        if "RateLimited" in data_string:
+                            await asyncio.sleep(60)  # default to 60s
+                            resp = await f(self, *args, **kwargs)
+                    except Exception as e:
+                        log.exception(e)
+                        log.error(
+                            f"Unable to decode b64 encoded string with response content {resp}"
+                        )
+
+        if self.raise_for_status:
+            if resp.status_code > 299:
+                log.warning(f"Non-200 status code: {await resp.text()}")
             resp.raise_for_status()
 
+        self.update_ratelimits(resp)
+
+        # DELETE responses have no content
         if resp.status_code == 204:
             return None
 
-        return resp.json()
+        # If the response is JSON, return the parsed content
+        if "application/json" in resp.headers.get("Content-Type"):
+            return resp.json()
+        else:
+            return resp.text()
 
     return wrapper
 
 
 class AsyncSession:
-    """Class for interacting with Clio Manage API using async/await."""
+    """
+    Session class for interacting with Clio Manage API.
+
+    WARNING: enabling `ratelimit` will block the process
+    asynchronously when API rate limits are hit.
+    """
 
     def __init__(
-            self,
-            token: dict,
-            client_id: str,
-            client_secret: str,
-            region="US",
-            ratelimit=False,
-            raise_for_status=False,
-            update_token=lambda *args: None,
+        self,
+        token,
+        client_id,
+        client_secret,
+        region="US",
+        ratelimit=False,
+        raise_for_status=False,
+        update_token=lambda *args, **kwargs: None,  # default update_token does nothing
+        autopaginate=True,
     ):
-        """Initialize our Session with an AsyncOAuth2Client."""
-        # lol
+        """Initialize Clio API HTTP Session."""
+        # lowercase this region amirite
         region = region.lower()
 
         if region == "us":
@@ -100,36 +138,82 @@ class AsyncSession:
             token_endpoint=self.token_endpoint,
             update_token=update_token,
         )
+
         self.ratelimit = ratelimit
+        self.ratelimit_limit = math.inf
+        self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
+        self.autopaginate = autopaginate
 
     def make_url(self, path):
-        """Make Clio API URL."""
+        """Make a new URL for Clio API."""
         return f"{self.api_base_url}/{path}.json"
 
-    @ratelimit
-    async def __get(self, url: str, **kwargs):
-        return await self.session.get(url, **kwargs)
+    def update_ratelimits(self, response):
+        """Update rate limits values from response headers."""
+        if self.ratelimit:
+            self.ratelimit_limit = response.headers.get(CLIO_API_RATELIMIT_LIMIT_HEADER)
+            self.ratelimit_remaining = response.headers.get(
+                CLIO_API_RATELIMIT_REMAINING_HEADER
+            )
 
     @ratelimit
-    async def __post(self, url: str, json: dict, **kwargs):
+    async def get_resource(self, url, params=None, **kwargs):
+        """GET a Resource from Clio API."""
+        # use unlimited cursor pagination
+        # https://docs.developers.clio.com/api-docs/paging/#unlimited-cursor-pagination
+        if not params:
+            params = {}
+        params["order"] = "id(asc)"
+        return await self.session.get(url, params=params, **kwargs)
+
+    @ratelimit
+    async def post_resource(self, url, json, **kwargs):
+        """POST a Resource to Clio API."""
         return await self.session.post(url, json=json, **kwargs)
 
     @ratelimit
-    async def __patch(self, url: str, json: dict, **kwargs):
+    async def patch_resource(self, url, json, **kwargs):
+        """PATCH a Resource on Clio API."""
         return await self.session.patch(url, json=json, **kwargs)
 
     @ratelimit
-    async def __delete(self, url: str, **kwargs):
+    async def delete_resource(self, url, **kwargs):
+        """DELETE a Resource on Clio API."""
         return await self.session.delete(url, **kwargs)
 
-    async def get_who_am_i(self):
-        """Get Clio User associated with current session token."""
+    async def get_paginated_resource(self, url, **kwargs):
+        """Get a paginated Resource from Clio API."""
+        if not self.autopaginate:
+            return await self.get_resource(url, **kwargs)
+        else:
+            return self.get_autopaginated_resource(url, **kwargs)
+
+    async def get_autopaginated_resource(self, url, **kwargs):
+        """GET a paginated Resource from Clio, following page links."""
+        while url:
+            resp = await self.get_resource(url, **kwargs)
+
+            for d in resp["data"]:
+                yield d
+
+            paging = resp["meta"].get("paging")
+            url = paging.get("next") if paging else None
+
+    async def get_who_am_i(self, **kwargs):
+        """GET currently authenticated User."""
         url = self.make_url("users/who_am_i")
-        return await self.__get(url)
+        return await self.get_resource(url, **kwargs)
 
     async def upload_document(
-            self, name, parent_id, parent_type, document, document_category_id=None, params=None, **kwargs
+        self,
+        name,
+        parent_id,
+        parent_type,
+        document,
+        document_category_id=None,
+        params=None,
+        **kwargs,
     ):
         """Upload a new Document to Clio.
 
@@ -140,7 +224,7 @@ class AsyncSession:
 
         """
         post_url = self.make_url("documents")
-        clio_document = await self.__post(
+        clio_document = await self.post_resource(
             post_url,
             params={"fields": "id,latest_document_version{uuid,put_url,put_headers}"},
             json={
@@ -173,7 +257,7 @@ class AsyncSession:
         if params:
             doc_params = doc_params | params  # this merges the dicts
 
-        patch_resp = await self.__patch(
+        patch_resp = await self.patch_resource(
             patch_url,
             params=doc_params,
             json={
@@ -185,3 +269,28 @@ class AsyncSession:
         )
 
         return patch_resp
+
+    async def get_contact(self, id, **kwargs):
+        """GET a Contact with provided ID."""
+        url = self.make_url(f"contacts/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def get_contacts(self, **kwargs):
+        """GET a list of Contacts."""
+        url = self.make_url("contacts")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def post_contact(self, json, **kwargs):
+        """POST a new Contact."""
+        url = self.make_url("contacts")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_contact(self, id, json, **kwargs):
+        """PATCH an existing Contact with provided ID."""
+        url = self.make_url(f"contacts/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_contact(self, id, **kwargs):
+        """DELETE an existing Contact with provided ID."""
+        url = self.make_url(f"contacts/{id}")
+        return await self.delete_resource(url, **kwargs)
