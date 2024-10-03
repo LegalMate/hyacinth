@@ -53,7 +53,7 @@ def ratelimit(f):
 
         # Sometimes we get a crazy json encoded rate limit error instead of the normal one
         if "application/json" in resp.headers.get("Content-Type", []):
-            json = await resp.json()
+            json = resp.json()
 
             if json.get("metadata"):
                 if json.get("metadata").get("encodingDecoded") == "text/plain":
@@ -83,9 +83,9 @@ def ratelimit(f):
 
         # If the response is JSON, return the parsed content
         if "application/json" in resp.headers.get("Content-Type"):
-            return await resp.json()
+            return resp.json()
         else:
-            return await resp.text()
+            return resp.text()
 
     return wrapper
 
