@@ -33,7 +33,9 @@ log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
-    """Provide non-blocking rate limits to wrapped fn."""
+    """Rate limit a function with Clio rate limits.
+    See: https://docs.developers.clio.com/api-docs/rate-limits/
+    """
 
     @functools.wraps(f)
     async def wrapper(self, *args, **kwargs):
