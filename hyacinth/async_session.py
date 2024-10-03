@@ -268,7 +268,27 @@ class AsyncSession:
 
         return patch_resp
 
+    async def get_contact(self, id, **kwargs):
+        """GET a Contact with provided ID."""
+        url = self.make_url(f"contacts/{id}")
+        return await self.get_resource(url, **kwargs)
+
     async def get_contacts(self, **kwargs):
         """GET a list of Contacts."""
         url = self.make_url("contacts")
         return await self.get_paginated_resource(url, **kwargs)
+
+    async def post_contact(self, json, **kwargs):
+        """POST a new Contact."""
+        url = self.make_url("contacts")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_contact(self, id, json, **kwargs):
+        """PATCH an existing Contact with provided ID."""
+        url = self.make_url(f"contacts/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_contact(self, id, **kwargs):
+        """DELETE an existing Contact with provided ID."""
+        url = self.make_url(f"contacts/{id}")
+        return await self.delete_resource(url, **kwargs)
