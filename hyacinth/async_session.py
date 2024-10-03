@@ -33,35 +33,32 @@ log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
-    """Rate limit a function with Clio rate limits.
-
-    See: https://docs.developers.clio.com/api-docs/rate-limits/
-    """
+    """Provide non-blocking rate limits to wrapped fn."""
 
     @functools.wraps(f)
     async def wrapper(self, *args, **kwargs):
         resp = await f(self, *args, **kwargs)
 
-        if resp.status == 429 and self.ratelimit:
-            retry_after = resp.headers.get("Retry-After")
+        if resp.status_code == 429 and self.ratelimit:
+            retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
-
-            # Retry the request after sleeping for the required time
             await asyncio.sleep(int(retry_after))
+
+            # Retry the request
             resp = await f(self, *args, **kwargs)
 
-        # Handle JSON decoding in the response, if applicable
-        if "application/json" in resp.headers.get("Content-Type", ""):
-            json_data = await resp.json()
+        # Sometimes we get a crazy json encoded rate limit error instead of the normal one
+        if "application/json" in resp.headers.get("Content-Type", []):
+            json = await resp.json()
 
-            if json_data.get("metadata"):
-                if json_data.get("metadata").get("encodingDecoded") == "text/plain":
+            if json.get("metadata"):
+                if json.get("metadata").get("encodingDecoded") == "text/plain":
                     try:
-                        data = base64.b64decode(json_data.get("data"))
+                        data = base64.b64decode(json.get("data"))
                         data_string = data.decode("utf-8")
 
                         if "RateLimited" in data_string:
-                            await asyncio.sleep(60)  # default wait 60s
+                            await asyncio.sleep(60)  # default to 60s
                             resp = await f(self, *args, **kwargs)
                     except Exception as e:
                         log.exception(e)
@@ -70,20 +67,21 @@ def ratelimit(f):
                         )
 
         if self.raise_for_status:
-            if resp.status > 299:
+            if resp.status_code > 299:
                 log.warning(f"Non-200 status code: {await resp.text()}")
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
 
-        if resp.status == 204:
+        # DELETE responses have no content
+        if resp.status_code == 204:
             return None
 
         # If the response is JSON, return the parsed content
-        if "application/json" in resp.headers.get("Content-Type", ""):
+        if "application/json" in resp.headers.get("Content-Type"):
             return await resp.json()
         else:
-            return await resp.read()
+            return await resp.text()
 
     return wrapper
 
