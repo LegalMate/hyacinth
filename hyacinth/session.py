@@ -742,6 +742,11 @@ class Session:
         url = self.make_url(f"line_items/{id}")
         return self.patch_resource(url, json=json, **kwargs)
 
+    def post_trust_request(self, json, **kwargs):
+        """POST a new Trust Request."""
+        url = self.make_url("trust_requests")
+        return self.post_resource(url, json=json, **kwargs)
+
     def get_custom_actions(self, **kwargs):
         """GET a list of Custom Actions."""
         url = self.make_url("custom_actions")

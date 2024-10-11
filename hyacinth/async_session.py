@@ -294,3 +294,8 @@ class AsyncSession:
         """DELETE an existing Contact with provided ID."""
         url = self.make_url(f"contacts/{id}")
         return await self.delete_resource(url, **kwargs)
+
+    async def post_trust_request(self, json, **kwargs):
+        """POST a new Trust Request."""
+        url = self.make_url("trust_requests")
+        return await self.post_resource(url, json=json, **kwargs)
