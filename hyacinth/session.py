@@ -862,3 +862,28 @@ class Session:
         """DELETE an existing Communication with provided ID."""
         url = self.make_url(f"communications/{id}")
         return self.delete_resource(url, **kwargs)
+
+    def get_reminders(self, **kwargs):
+        """GET a list of Reminders."""
+        url = self.make_url("reminders")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_reminder(self, id, **kwargs):
+        """GET a single Reminder with provided ID."""
+        url = self.make_url(f"reminders/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def post_reminder(self, json, **kwargs):
+        """POST a new Reminder."""
+        url = self.make_url("reminders")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_reminder(self, id, json, **kwargs):
+        """PATCH an existing Reminder with provided ID."""
+        url = self.make_url(f"reminders/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
+    def delete_reminder(self, id, **kwargs):
+        """DELETE an existing Reminder with provided ID."""
+        url = self.make_url(f"reminders/{id}")
+        return self.delete_resource(url, **kwargs)

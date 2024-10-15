@@ -299,3 +299,83 @@ class AsyncSession:
         """POST a new Trust Request."""
         url = self.make_url("trust_requests")
         return await self.post_resource(url, json=json, **kwargs)
+
+    async def get_reminders(self, **kwargs):
+        """GET a list of Reminders."""
+        url = self.make_url("reminders")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def get_reminder(self, id, **kwargs):
+        """GET a Reminder with provided ID."""
+        url = self.make_url(f"reminders/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def post_reminder(self, json, **kwargs):
+        """POST a new Reminder."""
+        url = self.make_url("reminders")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_reminder(self, id, json, **kwargs):
+        """PATCH an existing Reminder with provided ID."""
+        url = self.make_url(f"reminders/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_reminder(self, id, **kwargs):
+        """DELETE an existing Reminder with provided ID."""
+        url = self.make_url(f"reminders/{id}")
+        return await self.delete_resource(url, **kwargs)
+
+    async def get_tasks(self, **kwargs):
+        """GET a list of Tasks."""
+        url = self.make_url("tasks")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def get_task(self, id, **kwargs):
+        """GET a Task with provided ID."""
+        url = self.make_url(f"tasks/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def post_task(self, json, **kwargs):
+        """POST a new Task."""
+        url = self.make_url("tasks")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_task(self, id, json, **kwargs):
+        """PATCH an existing Task with provided ID."""
+        url = self.make_url(f"tasks/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_task(self, id, **kwargs):
+        """DELETE an existing Task with provided ID."""
+        url = self.make_url(f"tasks/{id}")
+        return await self.delete_resource(url, **kwargs)
+
+    async def post_task_list(self, json, **kwargs):
+        """POST a new Task List."""
+        url = self.make_url("task_lists")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def get_task_template_lists(self, **kwargs):
+        """GET a list of Task Template Lists."""
+        url = self.make_url("task_template_lists")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def get_task_template_list(self, id, **kwargs):
+        """GET a Task Template List with provided ID."""
+        url = self.make_url(f"task_template_lists/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def post_task_template_list(self, json, **kwargs):
+        """POST a new Task Template List."""
+        url = self.make_url("task_template_lists")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_task_template_list(self, id, json, **kwargs):
+        """PATCH an existing Task Template List with provided ID."""
+        url = self.make_url(f"task_template_lists/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_task_template_list(self, id, **kwargs):
+        """DELETE an existing Task Template List with provided ID."""
+        url = self.make_url(f"task_template_lists/{id}")
+        return await self.delete_resource(url, **kwargs)
