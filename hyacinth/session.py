@@ -57,6 +57,7 @@ def ratelimit(f):
                         data_string = data.decode("utf-8")
 
                         if "RateLimited" in data_string:
+                            log.info("Clio Rate Limit from base64 string, waiting 60s")
                             time.sleep(
                                 60
                             )  # no way to know how long to wait, default to 60s
