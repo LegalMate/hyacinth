@@ -379,3 +379,28 @@ class AsyncSession:
         """DELETE an existing Task Template List with provided ID."""
         url = self.make_url(f"task_template_lists/{id}")
         return await self.delete_resource(url, **kwargs)
+    
+    async def get_activity(self, id, **kwargs):
+        """GET a single Activity with provided ID."""
+        url = self.make_url(f"activities/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def get_activities(self, **kwargs):
+        """GET a list of Activities."""
+        url = self.make_url("activities")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def post_activity(self, json, **kwargs):
+        """POST a new Activity."""
+        url = self.make_url("activities")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_activity(self, id, json, **kwargs):
+        """PATCH an existing Activity with provided ID."""
+        url = self.make_url(f"activities/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_activity(self, id, **kwargs):
+        """DELETE an existing Activity with provided ID."""
+        url = self.make_url(f"activities/{id}")
+        return await self.delete_resource(url, **kwargs)
