@@ -70,7 +70,7 @@ def ratelimit(f):
 
         if self.raise_for_status:
             if resp.status_code > 299:
-                content = await resp.text()
+                content = await resp.content
                 log.warning(f"Non-200 status code: {content}")
             resp.raise_for_status()
 
