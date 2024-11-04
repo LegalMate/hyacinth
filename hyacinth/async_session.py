@@ -69,11 +69,11 @@ def ratelimit(f):
                         )
 
         if self.raise_for_status:
-            log.warning(f"Type of resp: {type(resp)}")
-            log.warning(f"response: {resp}")
+            print(f"Type of resp: {type(resp)}")
+            print(f"response: {resp}")
             if resp.status_code > 299:
                 #log.warning(f"Non-200 status code: {await resp.text()}")
-                log.warning(f"Non-200 status code: { resp.text}")
+                print(f"Non-200 status code: { resp.text}")
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
