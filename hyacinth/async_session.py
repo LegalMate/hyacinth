@@ -70,7 +70,8 @@ def ratelimit(f):
 
         if self.raise_for_status:
             if resp.status_code > 299:
-                log.warning(f"Non-200 status code: {await resp.text()}")
+                content = resp.content
+                log.warning(f"Non-200 status code: {content}")
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
@@ -379,7 +380,7 @@ class AsyncSession:
         """DELETE an existing Task Template List with provided ID."""
         url = self.make_url(f"task_template_lists/{id}")
         return await self.delete_resource(url, **kwargs)
-    
+
     async def get_activity(self, id, **kwargs):
         """GET a single Activity with provided ID."""
         url = self.make_url(f"activities/{id}")
