@@ -70,7 +70,8 @@ def ratelimit(f):
 
         if self.raise_for_status:
             if resp.status_code > 299:
-                log.warning(f"Non-200 status code: {await resp.text()}")
+                content = resp.content
+                log.warning(f"Non-200 status code: {content}")
             resp.raise_for_status()
 
         self.update_ratelimits(resp)
@@ -768,4 +769,29 @@ class AsyncSession:
     async def delete_reminder(self, id, **kwargs):
         """DELETE an existing Reminder with provided ID."""
         url = self.make_url(f"reminders/{id}")
+        return await self.delete_resource(url, **kwargs)
+
+    async def get_activity(self, id, **kwargs):
+        """GET a single Activity with provided ID."""
+        url = self.make_url(f"activities/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def get_activities(self, **kwargs):
+        """GET a list of Activities."""
+        url = self.make_url("activities")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def post_activity(self, json, **kwargs):
+        """POST a new Activity."""
+        url = self.make_url("activities")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def patch_activity(self, id, json, **kwargs):
+        """PATCH an existing Activity with provided ID."""
+        url = self.make_url(f"activities/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def delete_activity(self, id, **kwargs):
+        """DELETE an existing Activity with provided ID."""
+        url = self.make_url(f"activities/{id}")
         return await self.delete_resource(url, **kwargs)
