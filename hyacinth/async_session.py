@@ -554,6 +554,86 @@ class AsyncSession:
         """POST a new Matter."""
         url = self.make_url("matters")
         return await self.post_resource(url, json=json, **kwargs)
+    
+    async def patch_matter(self, json, **kwargs):
+        """PATCH a Matter with provided ID with provided JSON."""
+        url = self.make_url(f"matters/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def get_matter_stages(self, **kwargs):
+        """GET a list of Matter Stages."""
+        url = self.make_url("matter_stages")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def get_matter_client(self, matter_id, **kwargs):
+        """GET a Matter's Client with provided Matter ID."""
+        url = self.make_url(f"matters/{matter_id}/client")
+        return await self.get_resource(url, **kwargs)
+
+    async def get_calendars(self, **kwargs):
+        """GET Calendars."""
+        url = self.make_url("calendars")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def get_user(self, id, **kwargs):
+        """GET a single Userwith provided ID."""
+        url = self.make_url(f"users/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def get_users(self, **kwargs):
+        """GET a list of Users."""
+        url = self.make_url("users")
+        return await self.get_paginated_resource(url, **kwargs)
+    
+    async def post_calendar_entry(self, json, **kwargs):
+        """POST a Calendar Entry."""
+        url = self.make_url("calendar_entries")
+        return await self.post_resource(url, json, **kwargs)
+
+    async def patch_calendar_entry(self, id, json, **kwargs):
+        """PATCH a Calendar Entry."""
+        url = self.make_url(f"calendar_entries/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+
+    async def get_calendar_entries(self, **kwargs):
+        """GET a list of Calendar Entries."""
+        url = self.make_url("calendar_entries")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def post_note(self, json, **kwargs):
+        """POST a new Note."""
+        url = self.make_url("notes")
+        return await self.post_resource(url, json=json, **kwargs)
+
+    async def get_custom_fields(self, **kwargs):
+        """GET a list of Cusom Fields."""
+        url = self.make_url("custom_fields")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def download_document(self, id, **kwargs):
+        """Download a Document with provided ID."""
+        url = self.make_url(f"documents/{id}/download")
+        return await self.get_resource(url, **kwargs)
+
+    async def get_document(self, id, **kwargs):
+        """GET a Document with provided ID."""
+        url = self.make_url(f"documents/{id}")
+        return await self.get_resource(url, **kwargs)
+
+    async def delete_document(self, id, **kwargs):
+        """DELETE an existing Document with provided ID."""
+        url = self.make_url(f"documents/{id}")
+        return await self.delete_resource(url, **kwargs)
+
+    async def get_documents(self, **kwargs):
+        """GET a list of Documents."""
+        url = self.make_url("documents")
+        return await self.get_paginated_resource(url, **kwargs)
+    
+    async def get_matter_finances(self, id, **kwargs):
+        """GET a Matter's Finances with provided ID."""
+        url = self.make_url(f"matter_finances/{id}")
+        return await self.get_resource(url, **kwargs)
 
     async def get_activity(self, id, **kwargs):
         """GET a single Activity with provided ID."""
