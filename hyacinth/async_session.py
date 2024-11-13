@@ -581,7 +581,7 @@ class AsyncSession:
         return await self.get_paginated_resource(url, **kwargs)
 
     async def get_user(self, id, **kwargs):
-        """GET a single Userwith provided ID."""
+        """GET a single User with provided ID."""
         url = self.make_url(f"users/{id}")
         return await self.get_resource(url, **kwargs)
 
