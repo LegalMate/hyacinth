@@ -381,6 +381,11 @@ class AsyncSession:
         url = self.make_url(f"task_template_lists/{id}")
         return await self.delete_resource(url, **kwargs)
 
+    async def get_matter(self, id, **kwargs):
+        """GET a Matter with provided ID."""
+        url = self.make_url(f"matters/{id}")
+        return await self.get_resource(url, **kwargs)
+    
     async def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = self.make_url("matters")
@@ -555,7 +560,7 @@ class AsyncSession:
         url = self.make_url("matters")
         return await self.post_resource(url, json=json, **kwargs)
     
-    async def patch_matter(self, json, **kwargs):
+    async def patch_matter(self, id, json, **kwargs):
         """PATCH a Matter with provided ID with provided JSON."""
         url = self.make_url(f"matters/{id}")
         return await self.patch_resource(url, json=json, **kwargs)
