@@ -84,7 +84,7 @@ def ratelimit(f):
         if "application/json" in resp.headers.get("Content-Type"):
             return resp.json()
         else:
-            return resp.text()
+            return resp.content()
 
     return wrapper
 
@@ -385,7 +385,7 @@ class AsyncSession:
         """GET a Matter with provided ID."""
         url = self.make_url(f"matters/{id}")
         return await self.get_resource(url, **kwargs)
-    
+
     async def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = self.make_url("matters")
@@ -559,7 +559,7 @@ class AsyncSession:
         """POST a new Matter."""
         url = self.make_url("matters")
         return await self.post_resource(url, json=json, **kwargs)
-    
+
     async def patch_matter(self, id, json, **kwargs):
         """PATCH a Matter with provided ID with provided JSON."""
         url = self.make_url(f"matters/{id}")
@@ -589,7 +589,7 @@ class AsyncSession:
         """GET a list of Users."""
         url = self.make_url("users")
         return await self.get_paginated_resource(url, **kwargs)
-    
+
     async def post_calendar_entry(self, json, **kwargs):
         """POST a Calendar Entry."""
         url = self.make_url("calendar_entries")
@@ -634,7 +634,7 @@ class AsyncSession:
         """GET a list of Documents."""
         url = self.make_url("documents")
         return await self.get_paginated_resource(url, **kwargs)
-    
+
     async def get_matter_finances(self, id, **kwargs):
         """GET a Matter's Finances with provided ID."""
         url = self.make_url(f"matter_finances/{id}")
