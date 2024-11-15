@@ -41,6 +41,12 @@ def ratelimit(f):
     async def wrapper(self, *args, **kwargs):
         resp = await f(self, *args, **kwargs)
 
+        # Debug response chain
+        print("Response URL:", resp.url)
+        print("Response history:", resp.history)  # Will show any redirects
+        print("Final response headers:", resp.headers)
+        print("Is redirect:", resp.is_redirect)
+
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
