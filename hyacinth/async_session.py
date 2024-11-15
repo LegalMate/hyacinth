@@ -166,7 +166,14 @@ class AsyncSession:
         if not params:
             params = {}
         params["order"] = "id(asc)"
-        return await self.session.get(url, params=params, **kwargs)
+
+        # Debug headers being sent
+
+        print("Request headers:", self.session._client.headers)
+
+        resp = await self.session.get(url, params=params, **kwargs)
+        print("Response headers:", resp.headers)
+        return resp
 
     @ratelimit
     async def post_resource(self, url, json, **kwargs):
