@@ -167,13 +167,15 @@ class AsyncSession:
             params = {}
         params["order"] = "id(asc)"
 
-        # Debug headers being sent
+        # Debug the actual request headers
 
-        print("Request headers:", self.session.headers)
-
-        resp = await self.session.get(url, params=params, **kwargs)
-        print("Response headers:", resp.headers)
-        return resp
+        headers = kwargs.get("headers", {})
+        print("Request headers before:", headers)
+        response = await self.session.get(url, params=params, **kwargs)
+        print(
+            "Final request headers:", response.request.headers
+        )  # See what was actually sent
+        return response
 
     @ratelimit
     async def post_resource(self, url, json, **kwargs):
