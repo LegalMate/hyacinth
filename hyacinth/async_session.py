@@ -41,12 +41,6 @@ def ratelimit(f):
     async def wrapper(self, *args, **kwargs):
         resp = await f(self, *args, **kwargs)
 
-        # Debug response chain
-        print("Response URL:", resp.url)
-        print("Response history:", resp.history)  # Will show any redirects
-        print("Final response headers:", resp.headers)
-        print("Is redirect:", resp.is_redirect)
-
         if resp.status_code == 429 and self.ratelimit:
             retry_after = resp.headers.get(CLIO_API_RETRY_AFTER)
             log.info(f"Clio Rate Limit hit, Retry-After: {retry_after}s")
@@ -54,6 +48,10 @@ def ratelimit(f):
 
             # Retry the request
             resp = await f(self, *args, **kwargs)
+
+        # Handle S3 redirects before processing content
+        if resp.is_redirect and "location" in resp.headers:
+            resp = await self.get_resource(resp.headers["location"])
 
         # Sometimes we get a crazy json encoded rate limit error instead of the normal one
         if "application/json" in resp.headers.get("Content-Type", []):
@@ -172,16 +170,7 @@ class AsyncSession:
         if not params:
             params = {}
         params["order"] = "id(asc)"
-
-        # Debug the actual request headers
-
-        headers = kwargs.get("headers", {})
-        print("Request headers before:", headers)
-        response = await self.session.get(url, params=params, **kwargs)
-        print(
-            "Final request headers:", response.request.headers
-        )  # See what was actually sent
-        return response
+        return await self.session.get(url, params=params, **kwargs)
 
     @ratelimit
     async def post_resource(self, url, json, **kwargs):
