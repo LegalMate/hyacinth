@@ -169,7 +169,7 @@ class AsyncSession:
 
         # Debug headers being sent
 
-        print("Request headers:", self.session._client.headers)
+        print("Request headers:", self.session.headers)
 
         resp = await self.session.get(url, params=params, **kwargs)
         print("Response headers:", resp.headers)
