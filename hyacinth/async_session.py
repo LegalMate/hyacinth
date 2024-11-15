@@ -54,7 +54,7 @@ def ratelimit(f):
             s3_url = resp.headers["location"]
             if "s3." in s3_url:
                 # Use raw session without auth for S3 presigned URLs
-                resp = await self.session._client.get(s3_url)
+                resp = await self.session.get(s3_url)
             else:
                 # Use normal authenticated request for other redirects
                 resp = await self.get_resource(s3_url)
