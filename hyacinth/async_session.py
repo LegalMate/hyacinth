@@ -49,6 +49,18 @@ def ratelimit(f):
             # Retry the request
             resp = await f(self, *args, **kwargs)
 
+        # Handle S3 redirects before processing content
+        if resp.is_redirect and "location" in resp.headers:
+            s3_url = resp.headers["location"]
+            if "s3." in s3_url:
+                # Create a new client without auth headers for S3
+                timeout = aiohttp.ClientTimeout(connect=10, total=self.download_timeout)
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+                    async with session.get(s3_url) as resp:
+                        return await resp.read()
+            else:
+                resp = await self.get_resource(s3_url)
+
         # Sometimes we get a crazy json encoded rate limit error instead of the normal one
         if "application/json" in resp.headers.get("Content-Type", []):
             json = resp.json()
@@ -84,7 +96,7 @@ def ratelimit(f):
         if "application/json" in resp.headers.get("Content-Type"):
             return resp.json()
         else:
-            return resp.text()
+            return resp.content
 
     return wrapper
 
@@ -107,6 +119,7 @@ class AsyncSession:
         raise_for_status=False,
         update_token=lambda *args, **kwargs: None,  # default update_token does nothing
         autopaginate=True,
+        download_timeout=600,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -145,6 +158,7 @@ class AsyncSession:
         self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
         self.autopaginate = autopaginate
+        self.download_timeout = download_timeout
 
     def make_url(self, path):
         """Make a new URL for Clio API."""
@@ -385,7 +399,7 @@ class AsyncSession:
         """GET a Matter with provided ID."""
         url = self.make_url(f"matters/{id}")
         return await self.get_resource(url, **kwargs)
-    
+
     async def get_matters(self, **kwargs):
         """GET a list of Matters."""
         url = self.make_url("matters")
@@ -559,7 +573,7 @@ class AsyncSession:
         """POST a new Matter."""
         url = self.make_url("matters")
         return await self.post_resource(url, json=json, **kwargs)
-    
+
     async def patch_matter(self, id, json, **kwargs):
         """PATCH a Matter with provided ID with provided JSON."""
         url = self.make_url(f"matters/{id}")
@@ -589,7 +603,7 @@ class AsyncSession:
         """GET a list of Users."""
         url = self.make_url("users")
         return await self.get_paginated_resource(url, **kwargs)
-    
+
     async def post_calendar_entry(self, json, **kwargs):
         """POST a Calendar Entry."""
         url = self.make_url("calendar_entries")
@@ -634,7 +648,7 @@ class AsyncSession:
         """GET a list of Documents."""
         url = self.make_url("documents")
         return await self.get_paginated_resource(url, **kwargs)
-    
+
     async def get_matter_finances(self, id, **kwargs):
         """GET a Matter's Finances with provided ID."""
         url = self.make_url(f"matter_finances/{id}")
