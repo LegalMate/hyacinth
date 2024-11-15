@@ -6,6 +6,7 @@ import asyncio
 import aiohttp
 import aiofiles
 import aiofiles.os
+import httpx
 import base64
 import math
 
@@ -53,10 +54,10 @@ def ratelimit(f):
         if resp.is_redirect and "location" in resp.headers:
             s3_url = resp.headers["location"]
             if "s3." in s3_url:
-                # Use raw session without auth for S3 presigned URLs
-                resp = await self.session.get(s3_url)
+                # Create a new client without auth headers for S3
+                async with httpx.AsyncClient() as client:
+                    resp = await client.get(s3_url)
             else:
-                # Use normal authenticated request for other redirects
                 resp = await self.get_resource(s3_url)
 
         # Sometimes we get a crazy json encoded rate limit error instead of the normal one
