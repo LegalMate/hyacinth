@@ -95,7 +95,7 @@ def ratelimit(f):
         if "application/json" in resp.headers.get("Content-Type"):
             return resp.json()
         else:
-            return resp.content()
+            return resp.content
 
     return wrapper
 
