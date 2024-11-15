@@ -6,7 +6,6 @@ import asyncio
 import aiohttp
 import aiofiles
 import aiofiles.os
-import httpx
 import base64
 import math
 
@@ -55,8 +54,10 @@ def ratelimit(f):
             s3_url = resp.headers["location"]
             if "s3." in s3_url:
                 # Create a new client without auth headers for S3
-                async with httpx.AsyncClient() as client:
-                    resp = await client.get(s3_url)
+                timeout = aiohttp.ClientTimeout(connect=10, total=self.download_timeout)
+                async with aiohttp.ClientSession(timeout=timeout) as session:
+                    async with session.get(s3_url) as resp:
+                        return await resp.read()
             else:
                 resp = await self.get_resource(s3_url)
 
@@ -118,6 +119,7 @@ class AsyncSession:
         raise_for_status=False,
         update_token=lambda *args, **kwargs: None,  # default update_token does nothing
         autopaginate=True,
+        download_timeout=600,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -156,6 +158,7 @@ class AsyncSession:
         self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
         self.autopaginate = autopaginate
+        self.download_timeout = download_timeout
 
     def make_url(self, path):
         """Make a new URL for Clio API."""
