@@ -160,6 +160,12 @@ class AsyncSession:
         self.autopaginate = autopaginate
         self.download_timeout = download_timeout
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.session.aclose()
+
     def make_url(self, path):
         """Make a new URL for Clio API."""
         return f"{self.api_base_url}/{path}.json"
