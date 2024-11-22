@@ -888,3 +888,41 @@ class Session:
         """DELETE an existing Reminder with provided ID."""
         url = self.make_url(f"reminders/{id}")
         return self.delete_resource(url, **kwargs)
+
+
+
+    def get_medical_records_details(self, **kwargs):
+        """GET a list of Medical Records Details."""
+        url = self.make_url("medical_records_details")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_medical_record_detail(self, id, **kwargs):
+        """GET a single Medical Record Detail with provided ID."""
+        url = self.make_url(f"medical_records_details/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def post_medical_records_detail(self, json, **kwargs):
+        """POST a new Medical Records Detail."""
+        url = self.make_url("medical_records_details")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_medical_records_detail(self, id, json, **kwargs):
+        """PATCH an existing Medical Records Detail with provided ID."""
+        url = self.make_url(f"medical_records_details/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
+    def get_damages(self, **kwargs):
+        """GET a list of Damages."""
+        url = self.make_url("damages")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def post_damage(self, json, **kwargs):
+        """POST a new Damage."""
+        url = self.make_url("damages")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_damage(self, id, json, **kwargs):
+        """PATCH an existing Damage with provided ID."""
+        url = self.make_url(f"damages/{id}")
+        return self.patch_resource(url, json=json, **kwargs)
+
