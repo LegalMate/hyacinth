@@ -291,10 +291,30 @@ class Session:
         url = self.make_url(f"documents/{id}")
         return self.delete_resource(url, **kwargs)
 
-    def patch_documentcategory(self, id, json, **kwargs):
+    def get_document_categories(self, **kwargs):
+        """GET a list of Document Categories."""
+        url = self.make_url("document_categories")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_document_category(self, id, **kwargs):
+        """GET a single Document Category with provided ID."""
+        url = self.make_url(f"document_categories/{id}")
+        return self.get_resource(url, **kwargs)
+
+    def post_document_category(self, json, **kwargs):
+        """POST a new Document Category."""
+        url = self.make_url("document_categories")
+        return self.post_resource(url, json=json, **kwargs)
+
+    def patch_document_category(self, id, json, **kwargs):
         """PATCH an existing Document Category."""
         url = self.make_url(f"document_categories/{id}")
         return self.patch_resource(url, json=json, **kwargs)
+
+    def delete_document_category(self, id, **kwargs):
+        """DELETE an existing Document Category."""
+        url = self.make_url(f"document_categories/{id}")
+        return self.delete_resource(url, **kwargs)
 
     def patch_document(self, id, json, **kwargs):
         """PATCH an existing document with provided ID."""
