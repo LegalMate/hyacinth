@@ -426,13 +426,19 @@ class Session:
         url = self.make_url("folders/list")
         return self.get_paginated_resource(url, **kwargs)
 
-    def post_folder(self, name, parent_id, parent_type, **kwargs):
+    def post_folder(
+        self, name, parent_id, parent_type, document_category_id=None, **kwargs
+    ):
         """POST a new Folder."""
         url = self.make_url("folders")
         return self.post_resource(
             url,
             json={
-                "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+                "data": {
+                    "name": name,
+                    "parent": {"id": parent_id, "type": parent_type},
+                    "document_category": {"id": document_category_id},
+                }
             },
             **kwargs,
         )
