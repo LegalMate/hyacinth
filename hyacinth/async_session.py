@@ -426,13 +426,19 @@ class AsyncSession:
         url = self.make_url("folders/list")
         return await self.get_paginated_resource(url, **kwargs)
 
-    async def post_folder(self, name, parent_id, parent_type, **kwargs):
+    async def post_folder(
+        self, name, parent_id, parent_type, document_category_id=None, **kwargs
+    ):
         """POST a new Folder."""
         url = self.make_url("folders")
         return await self.post_resource(
             url,
             json={
-                "data": {"name": name, "parent": {"id": parent_id, "type": parent_type}}
+                "data": {
+                    "name": name,
+                    "parent": {"id": parent_id, "type": parent_type},
+                    "document_category": {"id": document_category_id},
+                }
             },
             **kwargs,
         )
