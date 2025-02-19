@@ -641,6 +641,16 @@ class AsyncSession:
         url = self.make_url("custom_fields")
         return await self.get_paginated_resource(url, **kwargs)
 
+    async def get_custom_field_sets(self, **kwargs):
+        """GET a list of Cusom Fields."""
+        url = self.make_url("custom_fields_sets")
+        return await self.get_paginated_resource(url, **kwargs)
+
+    async def get_custom_field_set(self, id, **kwargs):
+        """GET a list of Cusom Fields."""
+        url = self.make_url(f"custom_fields_sets/{id}")
+        return await self.get_resource(url, **kwargs)
+
     async def download_document(self, id, **kwargs):
         """Download a Document with provided ID."""
         url = self.make_url(f"documents/{id}/download")

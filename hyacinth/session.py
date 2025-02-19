@@ -255,6 +255,16 @@ class Session:
         """GET a list of Cusom Fields."""
         url = self.make_url("custom_fields")
         return self.get_paginated_resource(url, **kwargs)
+    
+    def get_custom_field_sets(self, **kwargs):
+        """GET a list of Cusom Fields."""
+        url = self.make_url("custom_fields_sets")
+        return self.get_paginated_resource(url, **kwargs)
+
+    def get_custom_field_set(self, id, **kwargs):
+        """GET a list of Cusom Fields."""
+        url = self.make_url(f"custom_fields_sets/{id}")
+        return self.get_resource(url, **kwargs)
 
     def get_who_am_i(self, **kwargs):
         """GET currently authenticated User."""
