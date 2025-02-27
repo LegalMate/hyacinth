@@ -700,7 +700,57 @@ class AsyncSession:
         """DELETE an existing Activity with provided ID."""
         url = self.make_url(f"activities/{id}")
         return await self.delete_resource(url, **kwargs)
-
+    
+    async def get_expense_categories(self, **kwargs):
+        """GET a list of Expense Categories."""
+        url = self.make_url("expense_categories")
+        return await self.get_paginated_resource(url, **kwargs)
+    
+    async def get_expense_category(self, id, **kwargs):
+        """GET an Expense Category with provided ID."""
+        url = self.make_url(f"expense_categories/{id}")
+        return await self.get_resource(url, **kwargs)
+    
+    async def post_expense_category(self, json, **kwargs):
+        """POST a new Expense Category."""
+        url = self.make_url("expense_categories")
+        return await self.post_resource(url, json=json, **kwargs)
+    
+    async def patch_expense_category(self, id, json, **kwargs):
+        """PATCH an existing Expense Category with provided ID."""
+        url = self.make_url(f"expense_categories/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+    
+    async def delete_expense_category(self, id, **kwargs):
+        """DELETE an existing Expense Category  with provided ID."""
+        url = self.make_url(f"expense_categories/{id}")
+        return await self.delete_resource(url, **kwargs)
+    
+    async def get_task_types(self, **kwargs):
+        """GET a list of Task Types."""
+        url = self.make_url("task_types")
+        return await self.get_paginated_resource(url, **kwargs)
+    
+    async def get_task_type(self, id, **kwargs):
+        """GET an Task Type with provided ID."""
+        url = self.make_url(f"task_types/{id}")
+        return await self.get_resource(url, **kwargs)
+    
+    async def post_task_type(self, json, **kwargs):
+        """POST a new Task Type."""
+        url = self.make_url("task_types")
+        return await self.post_resource(url, json=json, **kwargs)
+    
+    async def patch_task_type(self, id, json, **kwargs):
+        """PATCH an existing Task Type with provided ID."""
+        url = self.make_url(f"task_types/{id}")
+        return await self.patch_resource(url, json=json, **kwargs)
+    
+    async def delete_task_type(self, id, **kwargs):
+        """DELETE an existing Task Type  with provided ID."""
+        url = self.make_url(f"task_types/{id}")
+        return await self.delete_resource(url, **kwargs)
+    
     async def get_activity_description(self, id, **kwargs):
         """GET a single Activity Description with provided ID."""
         url = self.make_url(f"activity_descriptions/{id}")
