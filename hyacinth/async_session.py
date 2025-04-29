@@ -182,8 +182,6 @@ class AsyncSession:
         """GET a Resource from Clio API."""
         # use unlimited cursor pagination
         # https://docs.developers.clio.com/api-docs/paging/#unlimited-cursor-pagination
-        if not params:
-            params = {}
         return await self.session.get(url, params=params, **kwargs)
 
     @ratelimit
@@ -211,16 +209,41 @@ class AsyncSession:
     async def get_autopaginated_resource(self, url, **kwargs):
         """GET a paginated Resource from Clio, following page links."""
         page_num = 1
+        is_first_request = True
+        seen_urls = set()  # Optional: loop detection
+
         while url:
-            log.info(f"Fetching page {page_num} of {url}")
-            resp = await self.get_resource(url, **kwargs)
+            if url in seen_urls:
+                log.error(f"Detected loop: Requesting the same URL again: {url}")
+                break
+            seen_urls.add(url)
+
+            log.info(f"Fetching page {page_num}: {url}")
+            try:
+                if is_first_request:
+                    # Use original kwargs (potentially including params) ONLY for the first request
+                    resp = await self.get_resource(url, **kwargs)
+                    is_first_request = False
+                else:
+                    # For subsequent pages, use ONLY the next_url, ignore original kwargs/params
+                    resp = await self.get_resource(url)
+
+                # TODO remove after testing
+                first_item_id = resp["data"][0]["id"] if resp.get("data") else "N/A"
+                log.debug(
+                    f"Page {page_num} received. First item ID: {first_item_id}. Meta: {resp.get('meta')}"
+                )
+
+            except Exception as e:
+                log.error(f"Error fetching page {page_num} URL: {url}")
+                log.exception(e)
+                raise
 
             for d in resp["data"]:
                 yield d
 
-            paging = resp["meta"].get("paging")
+            paging = resp.get("meta", {}).get("paging")
             url = paging.get("next") if paging else None
-            log.info(f"Next page: {url}")
             page_num += 1
 
     async def get_who_am_i(self, **kwargs):
