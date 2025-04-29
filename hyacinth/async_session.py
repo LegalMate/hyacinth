@@ -29,7 +29,6 @@ CLIO_API_RETRY_AFTER = "Retry-After"
 PART_SIZE = 104857600  # 100 megabytes in bytes
 
 log = logging.getLogger(__name__)
-log.addHandler(logging.NullHandler())
 
 
 def ratelimit(f):
@@ -211,7 +210,9 @@ class AsyncSession:
 
     async def get_autopaginated_resource(self, url, **kwargs):
         """GET a paginated Resource from Clio, following page links."""
+        page_num = 1
         while url:
+            log.info(f"Fetching page {page_num} of {url}")
             resp = await self.get_resource(url, **kwargs)
 
             for d in resp["data"]:
@@ -219,6 +220,8 @@ class AsyncSession:
 
             paging = resp["meta"].get("paging")
             url = paging.get("next") if paging else None
+            log.info(f"Next page: {url}")
+            page_num += 1
 
     async def get_who_am_i(self, **kwargs):
         """GET currently authenticated User."""
