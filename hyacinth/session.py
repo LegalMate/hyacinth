@@ -69,8 +69,8 @@ def ratelimit(f):
                         )
 
         # 401 retry: attempt a single token refresh
-        if resp.status_code == 401 and self.on_token_refresh:
-            new_token = self.on_token_refresh()
+        if resp.status_code == 401 and self.on_token_invalid:
+            new_token = self.on_token_invalid()
             if new_token:
                 self.session.token = new_token
                 resp = f(self, *args, **kwargs)
@@ -114,7 +114,7 @@ class Session:
         raise_for_status=False,
         update_token=lambda *args, **kwargs: None,  # default update_token does nothing
         autopaginate=True,
-        on_token_refresh=None,
+        on_token_invalid=None,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -153,7 +153,7 @@ class Session:
         self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
         self.autopaginate = autopaginate
-        self.on_token_refresh = on_token_refresh
+        self.on_token_invalid = on_token_invalid
 
     def make_url(self, path):
         """Make a new URL for Clio API."""

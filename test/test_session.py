@@ -261,7 +261,7 @@ class TestSession(unittest.TestCase):
         )
 
 
-class TestOnTokenRefresh(unittest.TestCase):
+class TestOnTokenInvalid(unittest.TestCase):
     def _make_response(self, status_code, content=b'{"data": {}}', content_type="application/json"):
         resp = MagicMock()
         resp.status_code = status_code
@@ -270,20 +270,20 @@ class TestOnTokenRefresh(unittest.TestCase):
         resp.json.return_value = {"data": {}}
         return resp
 
-    def _make_session(self, on_token_refresh=None, raise_for_status=False):
+    def _make_session(self, on_token_invalid=None, raise_for_status=False):
         return hyacinth.Session(
             token=test_token,
             client_id=test_client_id,
             client_secret=test_client_secret,
-            on_token_refresh=on_token_refresh,
+            on_token_invalid=on_token_invalid,
             raise_for_status=raise_for_status,
         )
 
     def test_401_triggers_refresh_and_retries(self):
-        """401 with on_token_refresh triggers callback and retries with new token."""
+        """401 with on_token_invalid triggers callback and retries with new token."""
         new_token = {"access_token": "refreshed-token", "token_type": "bearer"}
         refresh_cb = MagicMock(return_value=new_token)
-        session = self._make_session(on_token_refresh=refresh_cb)
+        session = self._make_session(on_token_invalid=refresh_cb)
 
         resp_401 = self._make_response(401)
         resp_200 = self._make_response(200)
@@ -299,7 +299,7 @@ class TestOnTokenRefresh(unittest.TestCase):
         """If retry after refresh also returns 401, no infinite loop — falls through."""
         new_token = {"access_token": "refreshed-token", "token_type": "bearer"}
         refresh_cb = MagicMock(return_value=new_token)
-        session = self._make_session(on_token_refresh=refresh_cb)
+        session = self._make_session(on_token_invalid=refresh_cb)
 
         resp_401_first = self._make_response(401)
         resp_401_second = self._make_response(401)
@@ -311,9 +311,9 @@ class TestOnTokenRefresh(unittest.TestCase):
         # Second 401 falls through to normal return
         self.assertEqual(result, {"data": {}})
 
-    def test_401_without_on_token_refresh_falls_through(self):
-        """401 without on_token_refresh set falls through normally."""
-        session = self._make_session(on_token_refresh=None)
+    def test_401_without_on_token_invalid_falls_through(self):
+        """401 without on_token_invalid set falls through normally."""
+        session = self._make_session(on_token_invalid=None)
 
         resp_401 = self._make_response(401)
         session.session.get = MagicMock(return_value=resp_401)
@@ -324,10 +324,10 @@ class TestOnTokenRefresh(unittest.TestCase):
         session.session.get.assert_called_once()
         self.assertEqual(result, {"data": {}})
 
-    def test_on_token_refresh_returning_none_skips_retry(self):
-        """on_token_refresh returning None skips retry."""
+    def test_on_token_invalid_returning_none_skips_retry(self):
+        """on_token_invalid returning None skips retry."""
         refresh_cb = MagicMock(return_value=None)
-        session = self._make_session(on_token_refresh=refresh_cb)
+        session = self._make_session(on_token_invalid=refresh_cb)
 
         resp_401 = self._make_response(401)
         session.session.get = MagicMock(return_value=resp_401)
