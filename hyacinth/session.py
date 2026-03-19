@@ -79,7 +79,13 @@ def ratelimit(f):
         if self.raise_for_status:
             if resp.status_code > 299:
                 log.warning(f"Non-200 status code: {resp.content}")
-            resp.raise_for_status()
+                try:
+                    resp.raise_for_status()
+                except requests.HTTPError as e:
+                    raise requests.HTTPError(
+                        f"{e} - {resp.content.decode('utf-8', errors='replace')}",
+                        response=resp,
+                    ) from e
 
         self.update_ratelimits(resp)
 
