@@ -1,5 +1,6 @@
 import unittest
 
+import requests
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch, call
 
@@ -335,3 +336,27 @@ class TestRefreshOn401(unittest.TestCase):
         # Only one call to get — no retry after failed refresh
         session.session.get.assert_called_once()
         self.assertEqual(result, {"data": {}})
+
+
+class TestRaiseForStatusIncludesBody(unittest.TestCase):
+    def test_error_response_includes_clio_body(self):
+        """raise_for_status includes Clio's response body in the exception."""
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            raise_for_status=True,
+        )
+
+        error_body = b'{"error": {"type": "invalid", "message": "Matter not found"}}'
+        resp = MagicMock()
+        resp.status_code = 404
+        resp.headers = {"Content-Type": "application/json"}
+        resp.content = error_body
+        resp.raise_for_status.side_effect = requests.HTTPError("404 Client Error: Not Found")
+        session.session.get = MagicMock(return_value=resp)
+
+        with self.assertRaises(requests.HTTPError) as ctx:
+            session.get_resource("https://example.com/api/test.json")
+
+        self.assertIn("Matter not found", str(ctx.exception))
