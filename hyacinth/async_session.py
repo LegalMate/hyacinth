@@ -87,7 +87,7 @@ def ratelimit(f):
                 await self.session.refresh_token(url=self.token_endpoint)
                 resp = await f(self, *args, **kwargs)
             except Exception as e:
-                log.debug("Token refresh failed: %s", e)
+                log.debug(f"Token refresh failed: {e}")
 
         if self.raise_for_status:
             if resp.status_code > 299:
