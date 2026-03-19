@@ -7,7 +7,9 @@ import aiohttp
 import aiofiles
 import aiofiles.os
 import base64
+import httpx
 import math
+
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
 
@@ -79,11 +81,26 @@ def ratelimit(f):
                             f"Unable to decode b64 encoded string with response content {resp}"
                         )
 
+        # 401 retry: refresh the token and retry once
+        if resp.status_code == 401 and self.refresh_on_401:
+            try:
+                await self.session.refresh_token(url=self.token_endpoint)
+                resp = await f(self, *args, **kwargs)
+            except Exception as e:
+                log.debug("Token refresh failed: %s", e)
+
         if self.raise_for_status:
             if resp.status_code > 299:
                 content = resp.content
                 log.warning(f"Non-200 status code: {content}")
-            resp.raise_for_status()
+                try:
+                    resp.raise_for_status()
+                except httpx.HTTPStatusError as e:
+                    raise httpx.HTTPStatusError(
+                        f"{e} - {resp.content.decode('utf-8', errors='replace')}",
+                        request=e.request,
+                        response=e.response,
+                    ) from e
 
         self.update_ratelimits(resp)
 
@@ -119,6 +136,7 @@ class AsyncSession:
         update_token=lambda *args, **kwargs: None,  # default update_token does nothing
         autopaginate=True,
         download_timeout=600,
+        refresh_on_401=False,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -158,6 +176,7 @@ class AsyncSession:
         self.raise_for_status = raise_for_status
         self.autopaginate = autopaginate
         self.download_timeout = download_timeout
+        self.refresh_on_401 = refresh_on_401
 
     async def __aenter__(self):
         return self
