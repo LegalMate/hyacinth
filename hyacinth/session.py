@@ -68,10 +68,24 @@ def ratelimit(f):
                             f"Unable to decode b64 encoded string with response content {resp}"
                         )
 
+        # 401 retry: refresh the token and retry once
+        if resp.status_code == 401 and self.refresh_on_401:
+            try:
+                self.session.refresh_token(url=self.token_endpoint)
+                resp = f(self, *args, **kwargs)
+            except Exception as e:
+                log.debug("Token refresh failed: %s", e)
+
         if self.raise_for_status:
             if resp.status_code > 299:
                 log.warning(f"Non-200 status code: {resp.content}")
-            resp.raise_for_status()
+                try:
+                    resp.raise_for_status()
+                except requests.HTTPError as e:
+                    raise requests.HTTPError(
+                        f"{e} - {resp.content.decode('utf-8', errors='replace')}",
+                        response=resp,
+                    ) from e
 
         self.update_ratelimits(resp)
 
@@ -107,6 +121,7 @@ class Session:
         raise_for_status=False,
         update_token=lambda *args, **kwargs: None,  # default update_token does nothing
         autopaginate=True,
+        refresh_on_401=False,
     ):
         """Initialize Clio API HTTP Session."""
         # lowercase this region amirite
@@ -145,6 +160,7 @@ class Session:
         self.ratelimit_remaining = math.inf
         self.raise_for_status = raise_for_status
         self.autopaginate = autopaginate
+        self.refresh_on_401 = refresh_on_401
 
     def make_url(self, path):
         """Make a new URL for Clio API."""

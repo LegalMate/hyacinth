@@ -1,7 +1,8 @@
 import unittest
 
+import requests
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, call
 
 import hyacinth
 
@@ -259,3 +260,103 @@ class TestSession(unittest.TestCase):
         self.session.patch_resource.assert_called_with(
             "https://app.clio.com/api/v4/webhooks/1.json", json=json
         )
+
+
+class TestRefreshOn401(unittest.TestCase):
+    def _make_response(self, status_code, content=b'{"data": {}}', content_type="application/json"):
+        resp = MagicMock()
+        resp.status_code = status_code
+        resp.headers = {"Content-Type": content_type}
+        resp.content = content
+        resp.json.return_value = {"data": {}}
+        return resp
+
+    def _make_session(self, refresh_on_401=False, raise_for_status=False):
+        return hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            refresh_on_401=refresh_on_401,
+            raise_for_status=raise_for_status,
+        )
+
+    def test_401_triggers_refresh_and_retries(self):
+        """401 with refresh_on_401=True calls refresh_token and retries."""
+        session = self._make_session(refresh_on_401=True)
+
+        resp_401 = self._make_response(401)
+        resp_200 = self._make_response(200)
+        session.session.get = MagicMock(side_effect=[resp_401, resp_200])
+        session.session.refresh_token = MagicMock()
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        session.session.refresh_token.assert_called_once_with(url=session.token_endpoint)
+        self.assertEqual(result, {"data": {}})
+
+    def test_401_retry_also_401_falls_through(self):
+        """If retry after refresh also returns 401, no infinite loop — falls through."""
+        session = self._make_session(refresh_on_401=True)
+
+        resp_401_first = self._make_response(401)
+        resp_401_second = self._make_response(401)
+        session.session.get = MagicMock(side_effect=[resp_401_first, resp_401_second])
+        session.session.refresh_token = MagicMock()
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        session.session.refresh_token.assert_called_once()
+        # Second 401 falls through to normal return
+        self.assertEqual(result, {"data": {}})
+
+    def test_401_without_refresh_on_401_falls_through(self):
+        """401 with refresh_on_401=False (default) falls through unchanged."""
+        session = self._make_session(refresh_on_401=False)
+
+        resp_401 = self._make_response(401)
+        session.session.get = MagicMock(return_value=resp_401)
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        # Should return without attempting refresh
+        session.session.get.assert_called_once()
+        self.assertEqual(result, {"data": {}})
+
+    def test_failed_refresh_falls_through_with_original_401(self):
+        """If refresh_token raises an exception, falls through with original 401."""
+        session = self._make_session(refresh_on_401=True)
+
+        resp_401 = self._make_response(401)
+        session.session.get = MagicMock(return_value=resp_401)
+        session.session.refresh_token = MagicMock(side_effect=Exception("refresh failed"))
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        session.session.refresh_token.assert_called_once()
+        # Only one call to get — no retry after failed refresh
+        session.session.get.assert_called_once()
+        self.assertEqual(result, {"data": {}})
+
+
+class TestRaiseForStatusIncludesBody(unittest.TestCase):
+    def test_error_response_includes_clio_body(self):
+        """raise_for_status includes Clio's response body in the exception."""
+        session = hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            raise_for_status=True,
+        )
+
+        error_body = b'{"error": {"type": "invalid", "message": "Matter not found"}}'
+        resp = MagicMock()
+        resp.status_code = 404
+        resp.headers = {"Content-Type": "application/json"}
+        resp.content = error_body
+        resp.raise_for_status.side_effect = requests.HTTPError("404 Client Error: Not Found")
+        session.session.get = MagicMock(return_value=resp)
+
+        with self.assertRaises(requests.HTTPError) as ctx:
+            session.get_resource("https://example.com/api/test.json")
+
+        self.assertIn("Matter not found", str(ctx.exception))
