@@ -261,7 +261,7 @@ class TestSession(unittest.TestCase):
         )
 
 
-class TestOnTokenInvalid(unittest.TestCase):
+class TestRefreshOn401(unittest.TestCase):
     def _make_response(self, status_code, content=b'{"data": {}}', content_type="application/json"):
         resp = MagicMock()
         resp.status_code = status_code
@@ -270,50 +270,47 @@ class TestOnTokenInvalid(unittest.TestCase):
         resp.json.return_value = {"data": {}}
         return resp
 
-    def _make_session(self, on_token_invalid=None, raise_for_status=False):
+    def _make_session(self, refresh_on_401=False, raise_for_status=False):
         return hyacinth.Session(
             token=test_token,
             client_id=test_client_id,
             client_secret=test_client_secret,
-            on_token_invalid=on_token_invalid,
+            refresh_on_401=refresh_on_401,
             raise_for_status=raise_for_status,
         )
 
     def test_401_triggers_refresh_and_retries(self):
-        """401 with on_token_invalid triggers callback and retries with new token."""
-        new_token = {"access_token": "refreshed-token", "token_type": "bearer"}
-        refresh_cb = MagicMock(return_value=new_token)
-        session = self._make_session(on_token_invalid=refresh_cb)
+        """401 with refresh_on_401=True calls refresh_token and retries."""
+        session = self._make_session(refresh_on_401=True)
 
         resp_401 = self._make_response(401)
         resp_200 = self._make_response(200)
         session.session.get = MagicMock(side_effect=[resp_401, resp_200])
+        session.session.refresh_token = MagicMock()
 
         result = session.get_resource("https://example.com/api/test.json")
 
-        refresh_cb.assert_called_once()
-        self.assertEqual(session.session.token, new_token)
+        session.session.refresh_token.assert_called_once_with(url=session.token_endpoint)
         self.assertEqual(result, {"data": {}})
 
     def test_401_retry_also_401_falls_through(self):
         """If retry after refresh also returns 401, no infinite loop — falls through."""
-        new_token = {"access_token": "refreshed-token", "token_type": "bearer"}
-        refresh_cb = MagicMock(return_value=new_token)
-        session = self._make_session(on_token_invalid=refresh_cb)
+        session = self._make_session(refresh_on_401=True)
 
         resp_401_first = self._make_response(401)
         resp_401_second = self._make_response(401)
         session.session.get = MagicMock(side_effect=[resp_401_first, resp_401_second])
+        session.session.refresh_token = MagicMock()
 
         result = session.get_resource("https://example.com/api/test.json")
 
-        refresh_cb.assert_called_once()
+        session.session.refresh_token.assert_called_once()
         # Second 401 falls through to normal return
         self.assertEqual(result, {"data": {}})
 
-    def test_401_without_on_token_invalid_falls_through(self):
-        """401 without on_token_invalid set falls through normally."""
-        session = self._make_session(on_token_invalid=None)
+    def test_401_without_refresh_on_401_falls_through(self):
+        """401 with refresh_on_401=False (default) falls through unchanged."""
+        session = self._make_session(refresh_on_401=False)
 
         resp_401 = self._make_response(401)
         session.session.get = MagicMock(return_value=resp_401)
@@ -324,17 +321,17 @@ class TestOnTokenInvalid(unittest.TestCase):
         session.session.get.assert_called_once()
         self.assertEqual(result, {"data": {}})
 
-    def test_on_token_invalid_returning_none_skips_retry(self):
-        """on_token_invalid returning None skips retry."""
-        refresh_cb = MagicMock(return_value=None)
-        session = self._make_session(on_token_invalid=refresh_cb)
+    def test_failed_refresh_falls_through_with_original_401(self):
+        """If refresh_token raises an exception, falls through with original 401."""
+        session = self._make_session(refresh_on_401=True)
 
         resp_401 = self._make_response(401)
         session.session.get = MagicMock(return_value=resp_401)
+        session.session.refresh_token = MagicMock(side_effect=Exception("refresh failed"))
 
         result = session.get_resource("https://example.com/api/test.json")
 
-        refresh_cb.assert_called_once()
-        # No retry — only one call to session.get
+        session.session.refresh_token.assert_called_once()
+        # Only one call to get — no retry after failed refresh
         session.session.get.assert_called_once()
         self.assertEqual(result, {"data": {}})
