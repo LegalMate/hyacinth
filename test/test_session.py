@@ -1,7 +1,7 @@
 import unittest
 
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch, call
 
 import hyacinth
 
@@ -259,3 +259,82 @@ class TestSession(unittest.TestCase):
         self.session.patch_resource.assert_called_with(
             "https://app.clio.com/api/v4/webhooks/1.json", json=json
         )
+
+
+class TestOnTokenRefresh(unittest.TestCase):
+    def _make_response(self, status_code, content=b'{"data": {}}', content_type="application/json"):
+        resp = MagicMock()
+        resp.status_code = status_code
+        resp.headers = {"Content-Type": content_type}
+        resp.content = content
+        resp.json.return_value = {"data": {}}
+        return resp
+
+    def _make_session(self, on_token_refresh=None, raise_for_status=False):
+        return hyacinth.Session(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            on_token_refresh=on_token_refresh,
+            raise_for_status=raise_for_status,
+        )
+
+    def test_401_triggers_refresh_and_retries(self):
+        """401 with on_token_refresh triggers callback and retries with new token."""
+        new_token = {"access_token": "refreshed-token", "token_type": "bearer"}
+        refresh_cb = MagicMock(return_value=new_token)
+        session = self._make_session(on_token_refresh=refresh_cb)
+
+        resp_401 = self._make_response(401)
+        resp_200 = self._make_response(200)
+        session.session.get = MagicMock(side_effect=[resp_401, resp_200])
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        refresh_cb.assert_called_once()
+        self.assertEqual(session.session.token, new_token)
+        self.assertEqual(result, {"data": {}})
+
+    def test_401_retry_also_401_falls_through(self):
+        """If retry after refresh also returns 401, no infinite loop — falls through."""
+        new_token = {"access_token": "refreshed-token", "token_type": "bearer"}
+        refresh_cb = MagicMock(return_value=new_token)
+        session = self._make_session(on_token_refresh=refresh_cb)
+
+        resp_401_first = self._make_response(401)
+        resp_401_second = self._make_response(401)
+        session.session.get = MagicMock(side_effect=[resp_401_first, resp_401_second])
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        refresh_cb.assert_called_once()
+        # Second 401 falls through to normal return
+        self.assertEqual(result, {"data": {}})
+
+    def test_401_without_on_token_refresh_falls_through(self):
+        """401 without on_token_refresh set falls through normally."""
+        session = self._make_session(on_token_refresh=None)
+
+        resp_401 = self._make_response(401)
+        session.session.get = MagicMock(return_value=resp_401)
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        # Should return without attempting refresh
+        session.session.get.assert_called_once()
+        self.assertEqual(result, {"data": {}})
+
+    def test_on_token_refresh_returning_none_skips_retry(self):
+        """on_token_refresh returning None skips retry."""
+        refresh_cb = MagicMock(return_value=None)
+        session = self._make_session(on_token_refresh=refresh_cb)
+
+        resp_401 = self._make_response(401)
+        session.session.get = MagicMock(return_value=resp_401)
+
+        result = session.get_resource("https://example.com/api/test.json")
+
+        refresh_cb.assert_called_once()
+        # No retry — only one call to session.get
+        session.session.get.assert_called_once()
+        self.assertEqual(result, {"data": {}})
