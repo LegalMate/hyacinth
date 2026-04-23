@@ -24,6 +24,7 @@ CLIO_API_BASE_URL_CA = f"{CLIO_BASE_URL_CA}/api/v4"
 CLIO_API_BASE_URL_EU = f"{CLIO_BASE_URL_EU}/api/v4"
 
 CLIO_API_TOKEN_ENDPOINT = "/oauth/token"  # nosec
+CLIO_API_REVOKE_ENDPOINT = "/oauth/deauthorize"  # nosec
 CLIO_API_RATELIMIT_LIMIT_HEADER = "X-RateLimit-Limit"
 CLIO_API_RATELIMIT_REMAINING_HEADER = "X-RateLimit-Remaining"
 CLIO_API_RETRY_AFTER = "Retry-After"
@@ -161,6 +162,7 @@ class AsyncSession:
             self.api_base_url = CLIO_API_BASE_URL_US
 
         self.token_endpoint = self.base_url + CLIO_API_TOKEN_ENDPOINT
+        self.revoke_endpoint = self.base_url + CLIO_API_REVOKE_ENDPOINT
 
         self.session = AsyncOAuth2Client(
             client_id=client_id,
@@ -195,6 +197,12 @@ class AsyncSession:
             self.ratelimit_remaining = response.headers.get(
                 CLIO_API_RATELIMIT_REMAINING_HEADER
             )
+
+    async def revoke_token(self, token, token_type_hint=None):
+        """Revoke an OAuth token with the Clio provider."""
+        return await self.session.revoke_token(
+            self.revoke_endpoint, token, token_type_hint=token_type_hint
+        )
 
     @ratelimit
     async def get_resource(self, url, params=None, **kwargs):
