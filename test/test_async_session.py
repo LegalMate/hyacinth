@@ -1,3 +1,4 @@
+import inspect
 import unittest
 
 import httpx
@@ -115,3 +116,30 @@ class TestAsyncRaiseForStatusIncludesBody(unittest.IsolatedAsyncioTestCase):
             await session.get_resource("https://example.com/api/test.json")
 
         self.assertIn("Matter not found", str(ctx.exception))
+
+
+class TestAsyncDefaultUpdateToken(unittest.IsolatedAsyncioTestCase):
+    """AsyncOAuth2Client awaits update_token on every refresh, so the default
+    has to be a coroutine function or omitting it raises TypeError."""
+
+    async def test_default_update_token_is_awaitable(self):
+        session = AsyncSession(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+        )
+        update_token = session.session.update_token
+        self.assertTrue(inspect.iscoroutinefunction(update_token))
+        # Awaiting it is what authlib does; a plain function returning None
+        # would raise TypeError here.
+        self.assertIsNone(await update_token(test_token, refresh_token="r"))
+
+    async def test_supplied_update_token_is_used(self):
+        supplied = AsyncMock()
+        session = AsyncSession(
+            token=test_token,
+            client_id=test_client_id,
+            client_secret=test_client_secret,
+            update_token=supplied,
+        )
+        self.assertIs(session.session.update_token, supplied)

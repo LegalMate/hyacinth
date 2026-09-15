@@ -118,6 +118,13 @@ def ratelimit(f):
     return wrapper
 
 
+async def _default_update_token(*args, **kwargs):
+    """No-op default. Must be a coroutine: AsyncOAuth2Client awaits update_token
+    on every token refresh, so a plain function raises TypeError there.
+    """
+    return None
+
+
 class AsyncSession:
     """
     Session class for interacting with Clio Manage API.
@@ -134,7 +141,7 @@ class AsyncSession:
         region="US",
         ratelimit=False,
         raise_for_status=False,
-        update_token=lambda *args, **kwargs: None,  # default update_token does nothing
+        update_token=_default_update_token,
         autopaginate=True,
         download_timeout=600,
         refresh_on_401=False,
