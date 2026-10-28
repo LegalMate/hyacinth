@@ -7,11 +7,12 @@ import aiohttp
 import aiofiles
 import aiofiles.os
 import base64
-import httpx
 import math
 
 
 from authlib.integrations.httpx_client import AsyncOAuth2Client
+
+from .errors import HTTPX_ERRORS, HTTPX_STATUS_ERRORS, status_error_with_body
 
 CLIO_BASE_URL_US = "https://app.clio.com"
 CLIO_BASE_URL_AU = "https://au.app.clio.com"
@@ -96,12 +97,12 @@ def ratelimit(f):
                 log.warning(f"Non-200 status code: {content}")
                 try:
                     resp.raise_for_status()
-                except httpx.HTTPStatusError as e:
-                    raise httpx.HTTPStatusError(
-                        f"{e} - {resp.content.decode('utf-8', errors='replace')}",
-                        request=e.request,
-                        response=e.response,
-                    ) from e
+                except HTTPX_ERRORS as e:
+                    # Status errors from either family get Clio's body appended.
+                    # Transport, timeout and base errors pass through untouched.
+                    if isinstance(e, HTTPX_STATUS_ERRORS):
+                        raise status_error_with_body(e, resp) from e
+                    raise
 
         self.update_ratelimits(resp)
 
